@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroGO - Pump Power Estimator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Variabel Warna CSS untuk Dual Mode */
+        :root {
+            --bg-body: #f4f7fa;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-sub: #4a5568;
+            --text-muted: #718096;
+            --border-color: #cbd5e0;
+            --border-light: #edf2f7;
+            --bg-formula: #ebf8ff;
+            --border-formula: #bee3f8;
+            --bg-canvas-start: #f0fdf4;
+            --bg-canvas-end: #f8fafc;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e0;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --border-light: #334155;
+            --bg-formula: #1e3a8a40;
+            --border-formula: #1d4ed850;
+            --bg-canvas-start: #064e3b30;
+            --bg-canvas-end: #0f172a;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-body); color: var(--text-main); padding: 15px; }
+        
+        /* Header Dashboard */
+        .header { background: linear-gradient(135deg, #1a365d, #2a4365); color: white; padding: 18px 25px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header-title-container { display: flex; flex-direction: column; gap: 4px; }
+        .header h1 { font-size: 24px; display: flex; align-items: center; gap: 10px; font-weight: 700; line-height: 1.2; }
+        .header .credits { font-size: 11px; opacity: 0.85; font-weight: normal; letter-spacing: 0.3px; color: #e2e8f0; }
+        
+        /* Tombol Kontrol di Header */
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+        .toggle-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 6px 14px; font-size: 12px; font-weight: bold; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .toggle-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        /* Layout Grid Utama */
+        .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 15px; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        
+        /* Sidebar Input Kiri */
+        .sidebar { background: var(--bg-card); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; }
+        .sidebar h2 { font-size: 16px; color: #2b6cb0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Ukuran Teks Label Parameter (Tetap Besar) */
+        .control-label { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 15px; color: var(--text-sub); }
+        
+        /* Kontainer Input Ketik Manual */
+        .input-container { display: flex; align-items: center; gap: 8px; background-color: var(--border-light); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .input-icon { font-size: 18px; display: flex; align-items: center; } 
+        .num-input { width: 70px; padding: 4px 2px; font-size: 15px; font-weight: bold; border: none; background: transparent; color: var(--text-main); text-align: right; outline: none; }
+        .unit-lbl { font-size: 14px; font-weight: bold; color: var(--text-muted); min-width: 30px; }
+        
+        .lbl-q { color: #3182ce; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        .lbl-h { color: #38a169; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        .lbl-eta { color: #dd6b20; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        
+        input[type="range"] { width: 100%; height: 8px; border-radius: 5px; background: var(--border-color); outline: none; margin-top: 6px; }
+        #input-q { accent-color: #3182ce; }
+        #input-h { accent-color: #38a169; }
+        #input-eta { accent-color: #dd6b20; }
+        
+        /* Tampilan Rumus */
+        .formula-box { background: var(--bg-formula); border: 1px solid var(--border-formula); padding: 14px; border-radius: 6px; font-size: 12px; color: var(--text-sub); }
+        .formula-title { font-weight: bold; font-size: 11px; margin-bottom: 6px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; color: #2b6cb0; }
+        
+        .math-equation { display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; margin: 8px 0; font-family: 'Cambria', serif; color: #2b6cb0; }
+        .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; padding: 0 6px; }
+        .numerator { border-bottom: 1.5px solid #2b6cb0; padding-bottom: 2px; text-align: center; }
+        .denominator { padding-top: 2px; text-align: center; }
+        
+        /* Navigasi Indeks Rumus */
+        .formula-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0 6px 0; }
+        .btn-formula { background: var(--bg-card); border: 1px solid var(--border-color); padding: 5px 2px; font-size: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; color: var(--text-sub); transition: all 0.2s; }
+        .btn-formula:hover { background: var(--border-light); }
+        .btn-formula.active { background: #2b6cb0; color: white; border-color: #2b6cb0; }
+        .formula-detail-text { background: var(--bg-card); padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); min-height: 85px; font-size: 11px; line-height: 1.4; color: var(--text-sub); }
+        
+        /* Main Output Card */
+        .main-output-card { background: linear-gradient(135deg, #1a365d, #2b6cb0); color: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(43,108,176,0.2); margin-top: auto; }
+        .main-output-card .title { font-size: 11px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; }
+        .main-output-card .big-value { font-size: 32px; font-weight: bold; margin: 5px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .sub-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 11px; margin-top: 10px; background: rgba(255,255,255,0.12); padding: 8px; border-radius: 4px; }
+        
+        /* Main Content Area */
+        .main-content { display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Animasi Simulasi Canvas */
+        .sim-card { background: var(--bg-card); border-radius: 10px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; font-weight: bold; color: var(--text-sub); }
+        
+        /* Indikator Overload Dinamis */
+        .status-container { display: flex; align-items: center; gap: 12px; }
+        .sim-status { display: flex; align-items: center; gap: 6px; font-weight: bold; transition: color 0.3s ease; }
+        .badge-overload { font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; color: white; display: none; text-transform: uppercase; letter-spacing: 0.3px; }
+        
+        .canvas-container { position: relative; width: 100%; height: 210px; background: linear-gradient(to bottom, var(--bg-canvas-start), var(--bg-canvas-end)); border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; }
+        #canvasFluida { display: block; width: 100%; height: 100%; }
+        
+        /* Grid Tengah Panel Grafik */
+        .mid-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .mid-grid { grid-template-columns: 1fr; } }
+        .card-panel { background: var(--bg-card); padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-panel h3 { font-size: 12px; color: var(--text-main); text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid var(--border-light); padding-bottom: 4px; }
+        .chart-container { position: relative; height: 140px; width: 100%; display: flex; justify-content: center; }
+        
+        /* Informasi Sistem */
+        .info-list { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+        .info-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
+        .info-item span.lbl { color: var(--text-muted); }
+        .info-item span.val { font-weight: bold; color: var(--text-main); }
+        
+        /* Trend Performa Multi-Warna */
+        .trend-panel { background: var(--bg-card); padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .trend-panel h3 { font-size: 12px; color: var(--text-main); text-transform: uppercase; margin-bottom: 12px; }
+        .trend-row { display: flex; justify-content: space-between; gap: 12px; overflow-x: auto; }
+        
+        .trend-card { flex: 1; min-width: 110px; padding: 12px 8px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s; }
+        .trend-card .val { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .trend-card .lbl { font-size: 10px; font-weight: 500; line-height: 1.2; }
+        
+        .tc-blue { background-color: #ebf8ff; border: 1px solid #90cdf4; color: #2b6cb0; }
+        .tc-green { background-color: #f0fff4; border: 1px solid #9ae6b4; color: #2f855a; }
+        .tc-orange { background-color: #fffaf0; border: 1px solid #fbd38d; color: #c05621; }
+        .tc-purple { background-color: #faf5ff; border: 1px solid #d6bcfa; color: #6b46c1; }
+        .tc-red { background-color: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+
+        [data-theme="dark"] .trend-card { background-color: #1e293b; color: var(--text-main); }
+        [data-theme="dark"] .tc-blue { border-color: #2b6cb0; color: #63b3ed; }
+        [data-theme="dark"] .tc-green { border-color: #2f855a; color: #68d391; }
+        [data-theme="dark"] .tc-orange { border-color: #c05621; color: #fbd38d; }
+        [data-theme="dark"] .tc-purple { border-color: #6b46c1; color: #d6bcfa; }
+        [data-theme="dark"] .tc-red { border-color: #c53030; color: #feb2b2; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-title-container">
+            <h1>💧 HydroGO <span id="header-sub" style="font-size:14px; font-weight:normal; opacity:0.85;">| Pump Power Estimator</span></h1>
+            <div class="credits">by : Agan Muhammad Darda (101042400069) | Nina Amartha (101042400074) | Nadiya Andini Phasa (101042400071)</div>
+        </div>
+        <div class="header-controls">
+            <div style="font-size: 12px; opacity:0.9; text-align:right; margin-right: 10px;">
+                <div id="header-desc">Estimasi Cerdas Daya Listrik Pompa Air</div>
+                <div id="live-clock" style="font-weight: bold; margin-top:2px;">Memuat waktu...</div>
+            </div>
+            <button class="toggle-btn" id="langToggleBtn" onclick="toggleLanguage()">🌐 EN</button>
+            <button class="toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">🌙 Mode Gelap</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="sidebar">
+            <h2 id="title-input-param">Input Parameter</h2>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="lbl-q" id="lbl-debit">🌊 Debit Air (Q)</span>
+                    <div class="input-container">
+                        <span class="input-icon">🧪</span>
+                        <input type="number" id="num-q" class="num-input" min="1" max="100" step="0.5" value="25.0">
+                        <span class="unit-lbl">L/s</span>
+                    </div>
+                </div>
+                <input type="range" id="input-q" min="1" max="100" value="25" step="0.5">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="lbl-h" id="lbl-head">⛰️ Head Pompa (H)</span>
+                    <div class="input-container">
+                        <span class="input-icon">📐</span>
+                        <input type="number" id="num-h" class="num-input" min="1" max="100" step="0.5" value="35.0">
+                        <span class="unit-lbl">m</span>
+                    </div>
+                </div>
+                <input type="range" id="input-h" min="1" max="100" value="35" step="0.5">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="lbl-eta" id="lbl-efisiensi">⚙️ Efisiensi Pompa (η)</span>
+                    <div class="input-container">
+                        <span class="input-icon">📈</span>
+                        <input type="number" id="num-eta" class="num-input" min="10" max="100" step="1" value="75">
+                        <span class="unit-lbl">%</span>
+                    </div>
+                </div>
+                <input type="range" id="input-eta" min="10" max="100" value="75" step="1">
+            </div>
+            
+            <div class="formula-box">
+                <div class="formula-title" id="title-main-formula">Rumus Utama Listrik Pompa</div>
+                <div class="math-equation">
+                    <span>P = </span>
+                    <div class="fraction">
+                        <span class="numerator">&rho; &middot; g &middot; Q &middot; H</span>
+                        <span class="denominator">&eta;</span>
+                    </div>
+                </div>
+                
+                <div class="formula-title" id="title-sub-formula" style="margin-top:12px; border-top:1px solid var(--border-formula); padding-top:6px; font-size:10px;">Pilih Komponen untuk Penjabaran</div>
+                <div class="formula-nav">
+                    <div class="btn-formula active" onclick="gantiDetailRumus('pl', this)">P</div>
+                    <div class="btn-formula" onclick="gantiDetailRumus('ph', this)">Ph</div>
+                    <div class="btn-formula" onclick="gantiDetailRumus('ib', this)">I</div>
+                    <div class="btn-formula" onclick="gantiDetailRumus('ef', this)">&eta;</div>
+                </div>
+                <div id="formula-detail-display" class="formula-detail-text">
+                    </div>
+            </div>
+            
+            <div class="main-output-card">
+                <div class="title" id="title-out-card">⚡ Kebutuhan Daya Listrik</div>
+                <div class="big-value"><span id="out-kw">0.00</span> kW</div>
+                <div class="sub-metrics">
+                    <div><b>Watt:</b> <br><span id="out-watt">0</span> W</div>
+                    <div><b>Horsepower:</b> <br><span id="out-hp">0.00</span> HP</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="sim-card">
+                <div class="sim-header">
+                    <span id="title-visualisasi">VISUALISASI SIMULASI INTENSITAS ALIRAN HIDROLIK</span>
+                    <div class="status-container">
+                        <span id="txt-badge-overload" class="badge-overload">Overload</span>
+                        <span id="sys-status-node" class="sim-status"><span id="sys-dot">●</span> <span id="sys-txt">Sistem Normal</span></span>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="canvasFluida"></canvas>
+                </div>
+            </div>
+            
+            <div class="mid-grid">
+                <div class="card-panel">
+                    <h3 id="title-chart-komp">Komposisi Daya</h3>
+                    <div class="chart-container">
+                        <canvas id="chartKomposisi"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card-panel">
+                    <h3 id="title-chart-perf">Analisis Performa Pompa</h3>
+                    <div class="chart-container">
+                        <canvas id="chartPerforma"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card-panel">
+                    <h3 id="title-info-sys">Informasi Sistem</h3>
+                    <div class="info-list">
+                        <div class="info-item"><span class="lbl" id="lbl-volt">Tegangan Jala-Jala</span><span class="val" style="color:#2b6cb0;">380 V (3-&Phi;)</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-current">Kuat Arus Beban (I)</span><span class="val" id="out-current" style="color:#b83280;">0.0 A</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-freq">Frekuensi Kerja</span><span class="val">50 Hz</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-safe">Batas Aman Arus</span><span class="val">60.0 A</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-hyd-power">Daya Hidrolik Netto</span><span class="val" id="out-hyd-power" style="color:#2f855a;">0.0 kW</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trend-panel">
+                <h3 id="title-trend-panel">Trend Performa (Perbandingan Berbagai Kondisi Operasional)</h3>
+                <div class="trend-row">
+                    <div class="trend-card tc-blue"><span class="val" id="tr-low">0 kW</span><span class="lbl" id="lbl-tr-low">Debit Rendah<br>(15 L/s)</span></div>
+                    <div class="trend-card tc-green"><span class="val" id="tr-curr">0 kW</span><span class="lbl" id="lbl-tr-curr">Kondisi Aktual<br>(Sesuai Input)</span></div>
+                    <div class="trend-card tc-orange"><span class="val" id="tr-high">0 kW</span><span class="lbl" id="lbl-tr-high">Debit Tinggi<br>(+10 L/s)</span></div>
+                    <div class="trend-card tc-red"><span class="val" id="tr-head">0 kW</span><span class="lbl" id="lbl-tr-head">Head Ekstrim<br>(50 m)</span></div>
+                    <div class="trend-card tc-purple"><span class="val" id="tr-ideal">0 kW</span><span class="lbl" id="lbl-tr-ideal">Efisiensi Ideal<br>(85%)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartKomposisiObj = null;
+        let chartPerformaObj = null;
+        let canvas = null;
+        let ctx = null;
+        
+        let fluidTime = 0;
+        let currentQ = 25;
+        let currentH = 35;
+        let isOverload = false;
+        let currentTheme = 'light';
+        let currentLang = 'id'; // 'id' atau 'en'
+        let activeFormulaKey = 'pl';
+
+        // Manajemen Kamus Bahasa
+        const i18n = {
+            id: {
+                headerSub: "| Pump Power Estimator",
+                headerDesc: "Estimasi Cerdas Daya Listrik Pompa Air",
+                titleInputParam: "Input Parameter",
+                lblDebit: "🌊 Debit Air (Q)",
+                lblHead: "⛰️ Head Pompa (H)",
+                lblEfisiensi: "⚙️ Efisiensi Pompa (η)",
+                titleMainFormula: "Rumus Utama Listrik Pompa",
+                titleSubFormula: "Pilih Komponen untuk Penjabaran",
+                titleOutCard: "⚡ Kebutuhan Daya Listrik",
+                titleVisualisasi: "VISUALISASI SIMULASI INTENSITAS ALIRAN HIDROLIK",
+                sysNormal: "Sistem Normal",
+                sysOverload: "Sistem Overload!",
+                titleChartKomp: "Komposisi Daya",
+                titleChartPerf: "Analisis Performa Pompa",
+                titleInfoSys: "Informasi Sistem",
+                lblVolt: "Tegangan Jala-Jala",
+                lblCurrent: "Kuat Arus Beban (I)",
+                lblFreq: "Frekuensi Kerja",
+                lblSafe: "Batas Aman Arus",
+                lblHydPower: "Daya Hidrolik Netto",
+                titleTrendPanel: "Trend Performa (Perbandingan Berbagai Kondisi Operasional)",
+                lblTrLow: "Debit Rendah<br>(15 L/s)",
+                lblTrCurr: "Kondisi Aktual<br>(Sesuai Input)",
+                lblTrHigh: "Debit Tinggi<br>(+10 L/s)",
+                lblTrHead: "Head Ekstrim<br>(50 m)",
+                lblTrIdeal: "Efisiensi Ideal<br>(85%)",
+                chartLabelsKomp: ['Daya Hidrolik', 'Kerugian Motor', 'Mekanikal Losses'],
+                chartLabelsPerf: ['Efisiensi Aktual', 'Rugi Kalor'],
+                themeDarkBtn: "🌙 Mode Gelap",
+                themeLightBtn: "☀️ Mode Terang",
+                formula: {
+                    pl: "<strong>P = Daya Listrik Motoraktual (Watt)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>P = P<sub>hidrolik</sub> / &eta;</span><br>Total daya nyata yang diserap motor penggerak dari jaringan listrik jala-jala untuk menutupi losses mekanis.",
+                    ph: "<strong>Ph = Daya Hidrolik Aktual (Watt)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>P<sub>h</sub> = &rho; &middot; g &middot; Q &middot; H</span><br>Energi netto murni yang diberikan fluida cair. Konstanta air (&rho;) = 1000 kg/m³, Gravitasi (g) = 9.81 m/s².",
+                    ib: "<strong>I = Kuat Arus Motor (Ampere)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>I = P / (&radic;3 &middot; V &middot; cos &phi;)</span><br>Kebutuhan arus beban sistem listrik 3-Phase pada tegangan industri 380V dengan nilai Faktor Daya cos &phi; = 0.85.",
+                    ef: "<strong>&eta; = Efisiensi Efektif Pompa (%)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>&eta; = (P<sub>hidrolik</sub> / P<sub>listrik</sub>) &middot; 100%</span><br>Rasio persentase kemampuan performa mekanikal sistem pompa dalam mengubah energi listrik menjadi energi dorong fluida."
+                }
+            },
+            en: {
+                headerSub: "| Pump Power Estimator",
+                headerDesc: "Smart Estimation of Water Pump Electrical Power",
+                titleInputParam: "Input Parameters",
+                lblDebit: "🌊 Water Flow Rate (Q)",
+                lblHead: "⛰️ Pump Head (H)",
+                lblEfisiensi: "⚙️ Pump Efficiency (η)",
+                titleMainFormula: "Main Pump Power Formula",
+                titleSubFormula: "Select Component for Breakdown",
+                titleOutCard: "⚡ Electrical Power Required",
+                titleVisualisasi: "HYDRAULIC FLOW INTENSITIES SIMULATION VISUALIZATION",
+                sysNormal: "System Normal",
+                sysOverload: "System Overload!",
+                titleChartKomp: "Power Composition",
+                titleChartPerf: "Pump Performance Analysis",
+                titleInfoSys: "System Information",
+                lblVolt: "Grid Line Voltage",
+                lblCurrent: "Load Current (I)",
+                lblFreq: "Operating Frequency",
+                lblSafe: "Safe Current Limit",
+                lblHydPower: "Net Hydraulic Power",
+                titleTrendPanel: "Performance Trend (Comparison of Various Operational Conditions)",
+                lblTrLow: "Low Flow Rate<br>(15 L/s)",
+                lblTrCurr: "Actual Condition<br>(As Inputted)",
+                lblTrHigh: "High Flow Rate<br>(+10 L/s)",
+                lblTrHead: "Extreme Head<br>(50 m)",
+                lblTrIdeal: "Ideal Efficiency<br>(85%)",
+                chartLabelsKomp: ['Hydraulic Power', 'Motor Losses', 'Mechanical Losses'],
+                chartLabelsPerf: ['Actual Efficiency', 'Thermal Loss'],
+                themeDarkBtn: "🌙 Dark Mode",
+                themeLightBtn: "☀️ Light Mode",
+                formula: {
+                    pl: "<strong>P = Actual Motor Electrical Power (Watt)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>P = P<sub>hydraulic</sub> / &eta;</span><br>Total true power drawn by the prime mover motor from the main grid to cover mechanical and core losses.",
+                    ph: "<strong>Ph = Actual Hydraulic Power (Watt)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>P<sub>h</sub> = &rho; &middot; g &middot; Q &middot; H</span><br>Net pure fluid power output. Water density (&rho;) = 1000 kg/m³, Gravity (g) = 9.81 m/s².",
+                    ib: "<strong>I = Motor Current Load (Ampere)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>I = P / (&radic;3 &middot; V &middot; cos &phi;)</span><br>Estimated electric current demand for 3-Phase systems at 380V industrial voltage with Power Factor cos &phi; = 0.85.",
+                    ef: "<strong>&eta; = Effective Pump Efficiency (%)</strong><br><span style='font-family:Cambria; font-size:12px; color:#2b6cb0; font-weight:bold;'>&eta; = (P<sub>hydraulic</sub> / P<sub>electrical</sub>) &middot; 100%</span><br>Percentage ratio of mechanical system output in converting electrical input into fluid kinetic drive."
+                }
+            }
+        };
+
+        function toggleTheme() {
+            const body = document.documentElement;
+            const btn = document.getElementById('themeToggleBtn');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                btn.innerText = currentLang === 'id' ? i18n.id.themeDarkBtn : i18n.en.themeDarkBtn;
+                currentTheme = 'light';
+                updateChartThemes(false);
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = currentLang === 'id' ? i18n.id.themeLightBtn : i18n.en.themeLightBtn;
+                currentTheme = 'dark';
+                updateChartThemes(true);
+            }
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            document.getElementById('langToggleBtn').innerText = currentLang === 'id' ? "🌐 EN" : "🌐 ID";
+            
+            // Perbarui seluruh teks statis DOM
+            const data = i18n[currentLang];
+            document.getElementById('header-sub').innerText = data.headerSub;
+            document.getElementById('header-desc').innerText = data.headerDesc;
+            document.getElementById('title-input-param').innerText = data.titleInputParam;
+            document.getElementById('lbl-debit').innerText = data.lblDebit;
+            document.getElementById('lbl-head').innerText = data.lblHead;
+            document.getElementById('lbl-efisiensi').innerText = data.lblEfisiensi;
+            document.getElementById('title-main-formula').innerText = data.titleMainFormula;
+            document.getElementById('title-sub-formula').innerText = data.titleSubFormula;
+            document.getElementById('title-out-card').innerText = data.titleOutCard;
+            document.getElementById('title-visualisasi').innerText = data.titleVisualisasi;
+            document.getElementById('title-chart-komp').innerText = data.titleChartKomp;
+            document.getElementById('title-chart-perf').innerText = data.titleChartPerf;
+            document.getElementById('title-info-sys').innerText = data.titleInfoSys;
+            document.getElementById('lbl-volt').innerText = data.lblVolt;
+            document.getElementById('lbl-current').innerText = data.lblCurrent;
+            document.getElementById('lbl-freq').innerText = data.lblFreq;
+            document.getElementById('lbl-safe').innerText = data.lblSafe;
+            document.getElementById('lbl-hyd-power').innerText = data.lblHydPower;
+            document.getElementById('title-trend-panel').innerText = data.titleTrendPanel;
+            document.getElementById('lbl-tr-low').innerHTML = data.lblTrLow;
+            document.getElementById('lbl-tr-curr').innerHTML = data.lblTrCurr;
+            document.getElementById('lbl-tr-high').innerHTML = data.lblTrHigh;
+            document.getElementById('lbl-tr-head').innerHTML = data.lblTrHead;
+            document.getElementById('lbl-tr-ideal').innerHTML = data.lblTrIdeal;
+
+            // Perbarui tombol tema teks
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (currentTheme === 'light') {
+                themeBtn.innerText = data.themeDarkBtn;
+            } else {
+                themeBtn.innerText = data.themeLightBtn;
+            }
+
+            // Perbarui box jabaran rumus aktif
+            document.getElementById('formula-detail-display').innerHTML = data.formula[activeFormulaKey];
+
+            // Perbarui label grafik ChartJS
+            if (chartKomposisiObj && chartPerformaObj) {
+                chartKomposisiObj.data.labels = data.chartLabelsKomp;
+                chartPerformaObj.data.labels = data.chartLabelsPerf;
+                chartKomposisiObj.update();
+                chartPerformaObj.update();
+            }
+
+            hitungDaya(); // Refresh data perhitungan & status teks overload
+        }
+
+        function updateChartThemes(isDark) {
+            const textColor = isDark ? '#f8fafc' : '#333333';
+            [chartKomposisiObj, chartPerformaObj].forEach(chart => {
+                if(chart) {
+                    chart.options.plugins.legend.labels.color = textColor;
+                    chart.update();
+                }
+            });
+        }
+
+        function gantiDetailRumus(kunci, elemen) {
+            activeFormulaKey = kunci;
+            document.querySelectorAll('.btn-formula').forEach(btn => btn.classList.remove('active'));
+            elemen.classList.add('active');
+            document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula[kunci];
+        }
+
+        function renderFluidSimulation() {
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const tankBgColor = currentTheme === 'dark' ? "#334155" : "#e2e8f0";
+            const structuralStrokeColor = currentTheme === 'dark' ? "#64748b" : "#475569";
+            const waterColorMain = currentTheme === 'dark' ? "#3b82f6" : "#2563eb";
+            
+            const srcTankX = 50, srcTankY = 110, tankW = 70, tankH = 85;
+            const pumpX = canvas.width * 0.45, pumpY = 160, pumpRad = 26;
+            const destTankX = canvas.width - 120, tankDestW = 70, tankDestH = 85;
+            
+            let destTankY = 120 - (currentH * 0.95);
+            if (destTankY < 20) destTankY = 20; 
+
+            let flowSpeed = (currentQ / 25) * 0.18;
+            fluidTime += flowSpeed;
+
+            // 1. Gambar Tangki Sumber
+            ctx.fillStyle = tankBgColor;
+            ctx.fillRect(srcTankX, srcTankY, tankW, tankH);
+            ctx.strokeStyle = structuralStrokeColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(srcTankX, srcTankY, tankW, tankH);
+
+            let waterLevelSrc = tankH * (0.85 - (currentQ * 0.004));
+            ctx.fillStyle = "#3b82f6";
+            ctx.beginPath();
+            ctx.moveTo(srcTankX, srcTankY + tankH);
+            for(let x = 0; x <= tankW; x++) {
+                let yWave = Math.sin((x * 0.1) + fluidTime) * 2;
+                ctx.lineTo(srcTankX + x, srcTankY + tankH - waterLevelSrc + yWave);
+            }
+            ctx.lineTo(srcTankX + tankW, srcTankY + tankH);
+            ctx.closePath();
+            ctx.fill();
+
+            let p1 = { x: srcTankX + tankW, y: srcTankY + tankH - 25 };
+            let p2 = { x: pumpX, y: pumpY };
+            let p3 = { x: pumpX, y: destTankY + 25 };
+            let p4 = { x: destTankX, y: destTankY + 25 };
+
+            let seg1_len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            let seg2_len = Math.hypot(p3.x - p2.x, p3.y - p2.y);
+            let seg3_len = Math.hypot(p4.x - p3.x, p4.y - p3.y);
+            let totalPathLength = seg1_len + seg2_len + seg3_len;
+
+            // 2. Background Cairan di Pipa
+            ctx.lineWidth = 14;
+            ctx.strokeStyle = isOverload ? "rgba(239, 68, 68, 0.25)" : "rgba(59, 130, 246, 0.25)";
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.lineTo(p3.x, p3.y);
+            ctx.lineTo(p4.x, p4.y);
+            ctx.stroke();
+
+            // 3. Partikel Air
+            ctx.fillStyle = isOverload ? "#ef4444" : "#1d4ed8";
+            let numParticles = 40;
+            
+            for (let i = 0; i < numParticles; i++) {
+                let progress = ((i / numParticles) + (fluidTime * 0.04)) % 1;
+                let currentDist = progress * totalPathLength;
+                let ptX = 0, ptY = 0;
+
+                if (currentDist <= seg1_len) {
+                    let ratio = currentDist / seg1_len;
+                    ptX = p1.x + (p2.x - p1.x) * ratio;
+                    ptY = p1.y + (p2.y - p1.y) * ratio;
+                } else if (currentDist <= seg1_len + seg2_len) {
+                    let ratio = (currentDist - seg1_len) / seg2_len;
+                    ptX = p2.x + (p3.x - p2.x) * ratio;
+                    ptY = p2.y + (p3.y - p2.y) * ratio;
+                } else {
+                    let ratio = (currentDist - seg1_len - seg2_len) / seg3_len;
+                    ptX = p3.x + (p4.x - p3.x) * ratio;
+                    ptY = p3.y + (p4.y - p3.y) * ratio;
+                }
+
+                let waveOffset = Math.sin((progress * Math.PI * 12) + fluidTime) * 1.8;
+                ctx.beginPath();
+                if (currentDist > seg1_len && currentDist <= seg1_len + seg2_len) {
+                    ctx.arc(ptX + waveOffset, ptY, 3.5, 0, Math.PI * 2);
+                } else {
+                    ctx.arc(ptX, ptY + waveOffset, 3.5, 0, Math.PI * 2);
+                }
+                ctx.fill();
+            }
+
+            // 4. Dinding Luar Pipa
+            ctx.lineWidth = 18;
+            ctx.strokeStyle = structuralStrokeColor;
+            ctx.globalCompositeOperation = "destination-over";
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.lineTo(p3.x, p3.y);
+            ctx.lineTo(p4.x, p4.y);
+            ctx.stroke();
+            ctx.globalCompositeOperation = "source-over";
+
+            // 5. Rumah Pompa
+            ctx.fillStyle = isOverload ? "rgba(254, 226, 226, 0.85)" : "rgba(255, 255, 255, 0.75)";
+            ctx.strokeStyle = isOverload ? "#dc2626" : structuralStrokeColor;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(pumpX, pumpY, pumpRad, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = currentTheme === 'dark' ? "#f8fafc" : "#334155";
+            ctx.beginPath();
+            ctx.arc(pumpX, pumpY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Impeller Kipas
+            ctx.save();
+            ctx.translate(pumpX, pumpY);
+            ctx.rotate(fluidTime * 0.75);
+            ctx.fillStyle = currentTheme === 'dark' ? "#94a3b8" : "#4a5568";
+            for (let j = 0; j < 4; j++) {
+                ctx.rotate(Math.PI / 2);
+                ctx.fillRect(-2, -pumpRad + 6, 4, pumpRad - 12);
+                ctx.beginPath();
+                ctx.arc(0, -pumpRad + 6, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // 6. Tangki Penerima Utama
+            ctx.fillStyle = tankBgColor;
+            ctx.fillRect(destTankX, destTankY, tankDestW, tankDestH);
+            ctx.strokeStyle = structuralStrokeColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(destTankX, destTankY, tankDestW, tankDestH);
+
+            let waterLevelDst = tankDestH * (0.2 + (currentQ * 0.005));
+            ctx.fillStyle = waterColorMain;
+            ctx.beginPath();
+            ctx.moveTo(destTankX, destTankY + tankDestH);
+            for(let x = 0; x <= tankDestW; x++) {
+                let yWave = Math.sin((x * 0.12) + (fluidTime * 1.5)) * 2;
+                ctx.lineTo(destTankX + x, destTankY + tankDestH - waterLevelDst + yWave);
+            }
+            ctx.lineTo(destTankX + tankDestW, destTankY + tankDestH);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = currentTheme === 'dark' ? "#cbd5e0" : "#4a5568";
+            ctx.font = "bold 11px Arial";
+            ctx.fillText(`H: ${currentH.toFixed(1)} m`, destTankX, destTankY - 8);
+
+            requestAnimationFrame(renderFluidSimulation);
+        }
+
+        function hitungDaya() {
+            const Q_liters = parseFloat(document.getElementById('input-q').value) || 25;
+            const H = parseFloat(document.getElementById('input-h').value) || 35;
+            const eta_percent = parseFloat(document.getElementById('input-eta').value) || 75;
+
+            currentQ = Q_liters;
+            currentH = H;
+
+            const Q = Q_liters / 1000; 
+            const rho = 1000;
+            const g = 9.81;
+            const eta = eta_percent / 100;
+
+            const dayaHidrolikWatt = rho * g * Q * H;
+            const dayaListrikWatt = dayaHidrolikWatt / eta;
+            
+            const dayaListrikkW = dayaListrikWatt / 1000;
+            const dayaHidrolikkW = dayaHidrolikWatt / 1000;
+            const totalLosseskW = dayaListrikkW - dayaHidrolikkW;
+            const horsepower = dayaListrikWatt / 745.7;
+
+            const cosPhi = 0.85;
+            const vLine = 380;
+            const arusEstimasi = dayaListrikWatt / (Math.sqrt(3) * vLine * cosPhi);
+
+            const ambangBatasAmanArus = 60.0;
+            const sysStatusNode = document.getElementById('sys-status-node');
+            const sysDot = document.getElementById('sys-dot');
+            const sysTxt = document.getElementById('sys-txt');
+            const badgeOverload = document.getElementById('txt-badge-overload');
+            const containerCanvas = document.querySelector('.canvas-container');
+
+            if (arusEstimasi > ambangBatasAmanArus) {
+                isOverload = true;
+                sysStatusNode.style.color = "#dc2626";
+                sysDot.style.color = "#dc2626";
+                sysTxt.innerText = i18n[currentLang].sysOverload;
+                badgeOverload.style.display = "inline-block";
+                badgeOverload.style.backgroundColor = "#dc2626";
+                if(currentTheme === 'light') {
+                    containerCanvas.style.background = "linear-gradient(to bottom, #fef2f2, #fff5f5)";
+                } else {
+                    containerCanvas.style.background = "linear-gradient(to bottom, #991b1b30, #0f172a)";
+                }
+            } else {
+                isOverload = false;
+                sysStatusNode.style.color = "#16a34a";
+                sysDot.style.color = "#16a34a";
+                sysTxt.innerText = i18n[currentLang].sysNormal;
+                badgeOverload.style.display = "none";
+                containerCanvas.style.background = "linear-gradient(to bottom, var(--bg-canvas-start), var(--bg-canvas-end))";
+            }
+
+            document.getElementById('out-kw').innerText = dayaListrikkW.toFixed(2);
+            document.getElementById('out-watt').innerText = Math.round(dayaListrikWatt).toLocaleString(currentLang === 'id' ? 'id-ID' : 'en-US');
+            document.getElementById('out-hp').innerText = horsepower.toFixed(2);
+            document.getElementById('out-current').innerText = arusEstimasi.toFixed(1) + " A";
+            document.getElementById('out-hyd-power').innerText = dayaHidrolikkW.toFixed(1) + " kW";
+
+            if (chartKomposisiObj && chartKomposisiObj.data) {
+                chartKomposisiObj.data.datasets[0].data = [
+                    parseFloat(dayaHidrolikkW.toFixed(2)), 
+                    parseFloat((totalLosseskW * 0.6).toFixed(2)), 
+                    parseFloat((totalLosseskW * 0.4).toFixed(2))
+                ];
+                chartKomposisiObj.update('none');
+            }
+
+            if (chartPerformaObj && chartPerformaObj.data) {
+                chartPerformaObj.data.datasets[0].data = [eta_percent, 100 - eta_percent];
+                chartPerformaObj.update('none');
+            }
+
+            document.getElementById('tr-low').innerText = ((rho * g * (15/1000) * H) / eta / 1000).toFixed(2) + " kW";
+            document.getElementById('tr-curr').innerText = dayaListrikkW.toFixed(2) + " kW";
+            document.getElementById('tr-high').innerText = ((rho * g * ((Q_liters + 10)/1000) * H) / eta / 1000).toFixed(2) + " kW";
+            document.getElementById('tr-head').innerText = ((rho * g * Q * 50) / eta / 1000).toFixed(2) + " kW";
+            document.getElementById('tr-ideal').innerText = ((rho * g * Q * H) / 0.85 / 1000).toFixed(2) + " kW";
+        }
+
+        function sinkronDariSlider() {
+            document.getElementById('num-q').value = parseFloat(document.getElementById('input-q').value).toFixed(1);
+            document.getElementById('num-h').value = parseFloat(document.getElementById('input-h').value).toFixed(1);
+            document.getElementById('num-eta').value = document.getElementById('input-eta').value;
+            hitungDaya();
+        }
+
+        function sinkronDariKetik() {
+            let qRaw = document.getElementById('num-q').value;
+            let hRaw = document.getElementById('num-h').value;
+            let etaRaw = document.getElementById('num-eta').value;
+
+            let qVal = qRaw === "" ? 1.0 : parseFloat(qRaw);
+            let hVal = hRaw === "" ? 1.0 : parseFloat(hRaw);
+            let etaVal = etaRaw === "" ? 10 : parseFloat(etaRaw);
+
+            if (qVal < 1) qVal = 1; if (qVal > 100) qVal = 100;
+            if (hVal < 1) hVal = 1; if (hVal > 100) hVal = 100;
+            if (etaVal < 10) etaVal = 10; if (etaVal > 100) etaVal = 100;
+
+            document.getElementById('input-q').value = qVal;
+            document.getElementById('input-h').value = hVal;
+            document.getElementById('input-eta').value = etaVal;
+            
+            hitungDaya();
+        }
+
+        window.addEventListener('load', function() {
+            canvas = document.getElementById('canvasFluida');
+            ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            const ctxK = document.getElementById('chartKomposisi').getContext('2d');
+            const ctxP = document.getElementById('chartPerforma').getContext('2d');
+
+            chartKomposisiObj = new Chart(ctxK, {
+                type: 'doughnut',
+                data: {
+                    labels: i18n[currentLang].chartLabelsKomp,
+                    datasets: [{ data: [0, 0, 0], backgroundColor: ['#2563eb', '#ea580c', '#dc2626'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } }
+            });
+
+            chartPerformaObj = new Chart(ctxP, {
+                type: 'doughnut',
+                data: {
+                    labels: i18n[currentLang].chartLabelsPerf,
+                    datasets: [{ data: [0, 0], backgroundColor: ['#16a34a', '#f1f5f9'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } }
+            });
+
+            document.getElementById('input-q').addEventListener('input', sinkronDariSlider);
+            document.getElementById('input-h').addEventListener('input', sinkronDariSlider);
+            document.getElementById('input-eta').addEventListener('input', sinkronDariSlider);
+
+            document.getElementById('num-q').addEventListener('input', sinkronDariKetik);
+            document.getElementById('num-h').addEventListener('input', sinkronDariKetik);
+            document.getElementById('num-eta').addEventListener('input', sinkronDariKetik);
+
+            // Inisialisasi Konten default (ID)
+            document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula.pl;
+
+            renderFluidSimulation();
+            sinkronDariSlider();
+
+            setInterval(() => {
+                const now = new Date();
+                const localeStr = currentLang === 'id' ? 'id-ID' : 'en-US';
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('live-clock').innerText = now.toLocaleDateString(localeStr, options) + " | " + now.toTimeString().split(' ')[0];
+            }, 1000);
+        });
+
+        window.addEventListener('resize', () => {
+            if (canvas) {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+        });
+    </script>
+</body>
+</html>
