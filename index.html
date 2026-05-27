@@ -12,202 +12,373 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        /* Variabel Warna CSS untuk Dual Mode */
+        /* Variabel Warna Nuansa Blueprint Engineering */
         :root {
-            --bg-body: #f4f7fa;
-            --bg-card: #ffffff;
-            --text-main: #333333;
-            --text-sub: #4a5568;
-            --text-muted: #718096;
-            --border-color: #cbd5e0;
-            --border-light: #edf2f7;
-            --bg-formula: #ebf8ff;
-            --border-formula: #bee3f8;
+            --bg-body: #ebf4fa;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --text-main: #1e293b;
+            --text-sub: #334155;
+            --text-muted: #64748b;
+            --border-color: rgba(203, 213, 225, 0.7);
+            --border-light: rgba(241, 245, 249, 0.8);
+            --bg-formula: rgba(219, 234, 254, 0.7);
+            --border-formula: #93c5fd;
             --bg-canvas-start: #f0fdf4;
             --bg-canvas-end: #f8fafc;
+            --blueprint-line: rgba(37, 99, 235, 0.04);
+            --blueprint-accent: rgba(37, 99, 235, 0.08);
+            --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-md: 0 12px 20px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
+            --radius-main: 24px;
+            --radius-sub: 16px;
         }
 
         [data-theme="dark"] {
-            --bg-body: #0f172a;
-            --bg-card: #1e293b;
+            --bg-body: #0b0f19;
+            --bg-card: rgba(22, 30, 49, 0.85);
             --text-main: #f8fafc;
             --text-sub: #cbd5e0;
-            --text-muted: #94a3b8;
-            --border-color: #475569;
-            --border-light: #334155;
-            --bg-formula: #1e3a8a40;
-            --border-formula: #1d4ed850;
+            --text-muted: #64748b;
+            --border-color: rgba(51, 65, 85, 0.6);
+            --border-light: rgba(30, 41, 59, 0.5);
+            --bg-formula: rgba(30, 58, 138, 0.4);
+            --border-formula: rgba(29, 78, 216, 0.4);
             --bg-canvas-start: #064e3b30;
             --bg-canvas-end: #0f172a;
+            --blueprint-line: rgba(56, 189, 248, 0.03);
+            --blueprint-accent: rgba(56, 189, 248, 0.06);
+            --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.2);
+            --shadow-md: 0 20px 25px -5px rgba(0,0,0,0.3);
         }
 
-        /* Reset & Sentuhan Responsif Mobile */
-        * { 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-            /* Optimasi iOS: Menghilangkan delay highlight saat elemen di-tap */
-            -webkit-tap-highlight-color: transparent; 
+        /* ----------------------------------------------------
+           INTRO SPLASH SCREEN
+        ---------------------------------------------------- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
+        .water-drop-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .water-drop {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+            border-radius: 0% 100% 100% 100%;
+            transform: rotate(45deg);
+            animation: drip 1.4s ease-in-out infinite alternate;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .water-ripple {
+            position: absolute;
+            width: 20px; height: 20px;
+            border: 2px solid #60a5fa;
+            border-radius: 50%;
+            opacity: 0;
+            animation: ripple 1.4s ease-out infinite;
+            animation-delay: 0.7s;
+        }
+
+        .splash-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .splash-subtitle {
+            color: #93c5fd;
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        @keyframes drip {
+            0% { transform: rotate(45deg) scale(0.9) translateY(-10px); }
+            100% { transform: rotate(45deg) scale(1.05) translateY(5px); border-radius: 30% 70% 70% 70%; }
+        }
+        @keyframes ripple {
+            0% { width: 20px; height: 20px; opacity: 0.8; }
+            100% { width: 100px; height: 100px; opacity: 0; transform: scale(1.3); }
+        }
+
+        /* ----------------------------------------------------
+           BACKGROUND BLUEPRINT GRID
+        ---------------------------------------------------- */
         body { 
             background-color: var(--bg-body); 
             color: var(--text-main); 
-            padding: 12px;
-            /* Mencegah text-resize otomatis di iOS landscape */
-            -webkit-text-size-adjust: 100%; 
+            padding: 16px;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(var(--blueprint-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px),
+                linear-gradient(var(--blueprint-accent) 2px, transparent 2px),
+                linear-gradient(90deg, var(--blueprint-accent) 2px, transparent 2px);
+            background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
         }
-        
-        /* Header Dashboard */
+
+        body::before {
+            content: "P = (ρ · g · Q · H) / η  |  I = P / (√3 · V · cosφ)  |  Q = A · v";
+            position: fixed;
+            bottom: 5%; left: 2%;
+            font-family: 'Cambria', serif;
+            font-size: 14px; font-style: italic;
+            color: var(--blueprint-accent);
+            white-space: nowrap; pointer-events: none;
+            transform: rotate(-3deg); z-index: -1;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; right: 40px; width: 2px; height: 100%;
+            background: repeating-linear-gradient(to bottom, var(--blueprint-accent), var(--blueprint-accent) 2px, transparent 2px, transparent 15px);
+            box-shadow: -5px 0 0 var(--blueprint-accent);
+            pointer-events: none; z-index: -1; opacity: 0.7;
+        }
+
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; 
+            transition: background-color 0.3s, border-color 0.3s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(15px);
+            animation: smoothReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fade-in-section { animation: none; opacity: 1; transform: none; }
+            .water-drop, .water-ripple { animation: none; }
+        }
+
+        @keyframes smoothReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar, .card-panel, .trend-panel, .sim-card {
+            background-color: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-main);
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+        }
+
+        /* Header */
         .header { 
-            background: linear-gradient(135deg, #1a365d, #2a4365); 
-            color: white; 
-            padding: 15px; 
-            border-radius: 12px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            background: linear-gradient(135deg, #1e3a8a, #0d9488); 
+            color: white; padding: 20px; border-radius: var(--radius-main); 
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; 
+            box-shadow: var(--shadow-md);
         }
-        
-        /* Layout Flexbox adaptif untuk header di HP */
-        @media (min-width: 600px) {
-            .header { flex-direction: row; justify-content: space-between; align-items: center; }
-        }
-        
-        .header-title-container { display: flex; flex-direction: column; gap: 4px; }
-        .header h1 { font-size: 22px; display: flex; align-items: center; gap: 8px; font-weight: 700; }
-        .header .credits { font-size: 11px; opacity: 0.85; color: #e2e8f0; }
-        
+        @media (min-width: 600px) { .header { flex-direction: row; justify-content: space-between; align-items: center; } }
+        .header h1 { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .header .credits { font-size: 11px; opacity: 0.85; color: #ccfbf1; font-family: monospace; margin-top: 2px; }
         .header-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
         @media (min-width: 600px) { .header-controls { width: auto; } }
         
         .toggle-btn { 
-            background: rgba(255, 255, 255, 0.2); 
-            border: 1px solid rgba(255, 255, 255, 0.4); 
-            color: white; 
-            padding: 8px 16px; /* Diperbesar untuk kenyamanan jempol di layar HP */
-            font-size: 12px; 
-            font-weight: bold; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); 
+            color: white; padding: 8px 16px; font-size: 13px; font-weight: bold; 
+            border-radius: 100px; cursor: pointer; display: flex; align-items: center; gap: 6px; 
         }
+        .toggle-btn:hover { background: rgba(255, 255, 255, 0.3); }
 
-        /* Layout Grid Utama - Otomatis 1 Kolom Vertikal di Android/iOS */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        @media (min-width: 1025px) { .dashboard-grid { grid-template-columns: 360px 1fr; } }
+        /* Dashboard Layout */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        @media (min-width: 1025px) { .dashboard-grid { grid-template-columns: 380px 1fr; } }
         
-        /* Sidebar Input Kiri */
-        .sidebar { background: var(--bg-card); padding: 16px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 16px; }
-        .sidebar h2 { font-size: 16px; color: #2b6cb0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .sidebar h2 { font-size: 16px; color: #2563eb; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; }
+        [data-theme="dark"] .sidebar h2 { color: #38bdf8; }
+
+        .control-group { display: flex; flex-direction: column; gap: 10px; }
+        .control-label { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; color: var(--text-sub); }
         
-        .control-group { display: flex; flex-direction: column; gap: 8px; }
-        .control-label { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 15px; color: var(--text-sub); }
+        .input-container { display: flex; align-items: center; gap: 6px; background-color: var(--border-light); padding: 6px 12px; border-radius: var(--radius-sub); border: 1px solid var(--border-color); }
+        .num-input { width: 65px; font-size: 16px; font-weight: 700; border: none; background: transparent; color: var(--text-main); text-align: right; outline: none; }
+        .unit-lbl { font-size: 12px; font-weight: bold; color: var(--text-muted); }
         
-        /* Kontainer Input Angka Manual (Nyaman diakses via Keyboard Mobile) */
-        .input-container { display: flex; align-items: center; gap: 6px; background-color: var(--border-light); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .input-icon { font-size: 18px; } 
-        .num-input { width: 65px; padding: 2px; font-size: 16px; /* Font 16px mencegah otomatis auto-zoom pada Safari iOS */ font-weight: bold; border: none; background: transparent; color: var(--text-main); text-align: right; outline: none; }
-        .unit-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted); min-width: 25px; }
+        /* Indikator Slider */
+        input[type="range"] { 
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 8px; border-radius: 100px; outline: none; cursor: pointer; 
+        }
         
-        .lbl-q { color: #3182ce; font-size: 15px; font-weight: bold; }
-        .lbl-h { color: #38a169; font-size: 15px; font-weight: bold; }
-        .lbl-eta { color: #dd6b20; font-size: 15px; font-weight: bold; }
-        
-        /* Optimasi Slider Range agar Tebal dan Mudah Digeser Jari */
-        input[type="range"] { width: 100%; height: 12px; border-radius: 6px; background: var(--border-color); outline: none; margin-top: 4px; cursor: pointer; }
-        #input-q { accent-color: #3182ce; }
-        #input-h { accent-color: #38a169; }
-        #input-eta { accent-color: #dd6b20; }
-        
-        /* Kotak Rumus */
-        .formula-box { background: var(--bg-formula); border: 1px solid var(--border-formula); padding: 12px; border-radius: 8px; font-size: 12px; color: var(--text-sub); }
-        .formula-title { font-weight: bold; font-size: 11px; margin-bottom: 6px; text-align: center; text-transform: uppercase; color: #2b6cb0; }
-        .math-equation { display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; margin: 6px 0; font-family: 'Cambria', serif; color: #2b6cb0; }
+        #input-q { background: linear-gradient(to right, #2563eb, #dbeafe); }
+        #input-h { background: linear-gradient(to right, #16a34a, #dcfce7); }
+        #input-eta { background: linear-gradient(to right, #ea580c, #ffedd5); }
+
+        [data-theme="dark"] #input-q { background: linear-gradient(to right, #2563eb, #1e293b); }
+        [data-theme="dark"] #input-h { background: linear-gradient(to right, #16a34a, #1e293b); }
+        [data-theme="dark"] #input-eta { background: linear-gradient(to right, #ea580c, #1e293b); }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+            border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: transform 0.1s;
+        }
+        #input-q::-webkit-slider-thumb { background: #2563eb; }
+        #input-h::-webkit-slider-thumb { background: #16a34a; }
+        #input-eta::-webkit-slider-thumb { background: #ea580c; }
+        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+        /* Formula Box */
+        .formula-box { background: var(--bg-formula); border: 1px solid var(--border-formula); padding: 14px; border-radius: var(--radius-sub); font-size: 12px; color: var(--text-sub); }
+        .formula-title { font-weight: bold; font-size: 11px; margin-bottom: 6px; text-align: center; text-transform: uppercase; color: #1e40af; }
+        [data-theme="dark"] .formula-title { color: #60a5fa; }
+        .math-equation { display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; margin: 6px 0; font-family: 'Cambria', serif; color: #1e40af; }
+        [data-theme="dark"] .math-equation { color: #60a5fa; }
         .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; align-items: center; padding: 0 6px; }
-        .numerator { border-bottom: 1.5px solid #2b6cb0; padding-bottom: 2px; text-align: center; }
-        .denominator { padding-top: 2px; text-align: center; }
-        
+        .numerator { border-bottom: 2px solid currentColor; padding-bottom: 2px; }
         .formula-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0; }
-        .btn-formula { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 2px; /* Ditambah padding vertikal agar mudah di-tap jari */ font-size: 11px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; color: var(--text-sub); }
-        .btn-formula.active { background: #2b6cb0; color: white; border-color: #2b6cb0; }
-        .formula-detail-text { background: var(--bg-card); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); min-height: 90px; font-size: 11px; line-height: 1.4; }
+        .btn-formula { background: var(--bg-card); border: 1px solid var(--border-color); padding: 6px 2px; font-size: 12px; font-weight: bold; border-radius: 10px; cursor: pointer; text-align: center; color: var(--text-sub); }
+        .btn-formula.active { background: #2563eb; color: white; border-color: #2563eb; }
+        .formula-detail-text { background: var(--bg-card); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); min-height: 85px; font-size: 12px; }
         
-        /* Main Output Card */
-        .main-output-card { background: linear-gradient(135deg, #1a365d, #2b6cb0); color: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(43,108,176,0.2); }
-        .main-output-card .title { font-size: 11px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; }
-        .main-output-card .big-value { font-size: 32px; font-weight: bold; margin: 4px 0; }
-        .sub-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 11px; margin-top: 10px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 6px; }
+        /* Kartu Output Utama */
+        .main-output-card { 
+            background: linear-gradient(135deg, #1e3a8a, #1d4ed8); 
+            color: white; padding: 20px; border-radius: var(--radius-sub); text-align: center; 
+            box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25); cursor: pointer;
+        }
+        .main-output-card:hover { transform: scale(1.02); box-shadow: 0 12px 24px rgba(29, 78, 216, 0.35); }
+        .main-output-card .big-value { font-size: 34px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px; }
         
-        /* Main Content Area */
-        .main-content { display: flex; flex-direction: column; gap: 12px; }
+        /* Grid Sub-Metrik Output */
+        .sub-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-top: 14px; }
+        .clickable-metric-box { background: rgba(255,255,255,0.12); padding: 10px; border-radius: 12px; transition: background 0.2s; }
+        .clickable-metric-box:hover { background: rgba(255,255,255,0.22); }
         
-        /* Simulasi Canvas Card */
-        .sim-card { background: var(--bg-card); border-radius: 12px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 11px; font-weight: bold; color: var(--text-sub); }
-        .status-container { display: flex; align-items: center; gap: 8px; }
-        .sim-status { display: flex; align-items: center; gap: 4px; font-weight: bold; }
-        .badge-overload { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; color: white; display: none; }
-        
-        .canvas-container { position: relative; width: 100%; height: 180px; background: linear-gradient(to bottom, var(--bg-canvas-start), var(--bg-canvas-end)); border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; }
+        /* Right Content Panel */
+        .main-content { display: flex; flex-direction: column; gap: 16px; }
+        .sim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 11px; font-weight: 800; color: var(--text-muted); }
+        .canvas-container { position: relative; width: 100%; height: 190px; border-radius: var(--radius-sub); overflow: hidden; border: 1px solid var(--border-color); }
         #canvasFluida { display: block; width: 100%; height: 100%; }
         
-        /* Grid Panel Grafik Tengah */
-        .mid-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .mid-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
         @media (min-width: 650px) { .mid-grid { grid-template-columns: 1fr 1fr; } }
         @media (min-width: 1025px) { .mid-grid { grid-template-columns: 1fr 1fr 1fr; } }
         
-        .card-panel { background: var(--bg-card); padding: 14px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .card-panel h3 { font-size: 12px; color: var(--text-main); text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid var(--border-light); padding-bottom: 4px; }
-        .chart-container { position: relative; height: 150px; width: 100%; }
+        .card-panel h3 { font-size: 13px; color: var(--text-main); text-transform: uppercase; margin-bottom: 12px; border-bottom: 2px solid var(--border-light); padding-bottom: 6px; }
         
-        /* Informasi Sistem */
-        .info-list { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
-        .info-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
-        .info-item span.lbl { color: var(--text-muted); }
+        /* Chart Container */
+        .chart-container { 
+            position: relative; 
+            height: 180px; 
+            width: 100%; 
+            display: block;
+            cursor: pointer;
+        }
+        
+        .info-list { display: flex; flex-direction: column; gap: 10px; font-size: 12px; cursor: pointer; }
+        .info-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; transition: padding-left 0.2s; }
+        .info-item:hover { padding-left: 4px; color: #2563eb; }
         .info-item span.val { font-weight: bold; }
         
-        /* Trend Performa Horizon Swipeable di Mobile */
-        .trend-panel { background: var(--bg-card); padding: 14px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .trend-panel h3 { font-size: 12px; color: var(--text-main); text-transform: uppercase; margin-bottom: 10px; }
+        /* Trend Performa Row */
+        .trend-panel h3 { font-size: 13px; color: var(--text-main); text-transform: uppercase; margin-bottom: 12px; }
+        .trend-row { display: flex; justify-content: space-between; gap: 12px; overflow-x: auto; padding-bottom: 8px; cursor: pointer; }
+        .trend-card { flex: 1; min-width: 115px; padding: 14px 8px; border-radius: var(--radius-sub); text-align: center; }
+        .trend-card .val { font-size: 15px; font-weight: bold; }
+        .trend-card .lbl { font-size: 10px; font-weight: 600; line-height: 1.3; }
         
-        /* Mengizinkan Geser Samping (Horizontal Scroll) jika di HP agar tidak gepeng */
-        .trend-row { display: flex; justify-content: space-between; gap: 10px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
-        .trend-card { flex: 1; min-width: 105px; padding: 12px 6px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .trend-card .val { font-size: 14px; font-weight: bold; margin-bottom: 2px; }
-        .trend-card .lbl { font-size: 10px; font-weight: 500; line-height: 1.2; }
-        
-        .tc-blue { background-color: #ebf8ff; border: 1px solid #90cdf4; color: #2b6cb0; }
-        .tc-green { background-color: #f0fff4; border: 1px solid #9ae6b4; color: #2f855a; }
-        .tc-orange { background-color: #fffaf0; border: 1px solid #fbd38d; color: #c05621; }
-        .tc-purple { background-color: #faf5ff; border: 1px solid #d6bcfa; color: #6b46c1; }
-        .tc-red { background-color: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+        .tc-blue { background-color: #dbeafe; border: 1px solid #bfdbfe; color: #1e40af; }
+        .tc-green { background-color: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .tc-orange { background-color: #ffedd5; border: 1px solid #fed7aa; color: #9a3412; }
+        .tc-purple { background-color: #f3e8ff; border: 1px solid #e9d5ff; color: #6b21a8; }
+        .tc-red { background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
 
-        [data-theme="dark"] .trend-card { background-color: #1e293b; color: var(--text-main); }
-        [data-theme="dark"] .tc-blue { border-color: #2b6cb0; color: #63b3ed; }
-        [data-theme="dark"] .tc-green { border-color: #2f855a; color: #68d391; }
-        [data-theme="dark"] .tc-orange { border-color: #c05621; color: #fbd38d; }
-        [data-theme="dark"] .tc-purple { border-color: #6b46c1; color: #d6bcfa; }
-        [data-theme="dark"] .tc-red { border-color: #c53030; color: #feb2b2; }
+        [data-theme="dark"] .trend-card { background-color: #111827; }
+        [data-theme="dark"] .tc-blue { border-color: #1d4ed8; color: #60a5fa; }
+        [data-theme="dark"] .tc-green { border-color: #15803d; color: #4ade80; }
+        [data-theme="dark"] .tc-orange { border-color: #c2410c; color: #fb923c; }
+        [data-theme="dark"] .tc-purple { border-color: #7e22ce; color: #c084fc; }
+        [data-theme="dark"] .tc-red { border-color: #b91c1c; color: #f87171; }
+
+        /* Modal Pop-up */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 24px; border-radius: var(--radius-main); width: 90%; max-width: 440px;
+            box-shadow: var(--shadow-md); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center; color: var(--text-main);
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-icon { font-size: 40px; margin-bottom: 12px; }
+        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #2563eb; }
+        [data-theme="dark"] .modal-title { color: #38bdf8; }
+        .modal-value { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+        .modal-desc { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 20px; }
+        .modal-close-btn { background: #2563eb; color: white; border: none; padding: 10px 24px; font-weight: bold; border-radius: 100px; cursor: pointer; width: 100%; }
+        .modal-close-btn:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <div id="splash-screen">
+        <div class="water-drop-container">
+            <div class="water-drop"></div>
+            <div class="water-ripple"></div>
+        </div>
+        <div class="splash-title">HydroGO</div>
+        <div class="splash-subtitle">PUMP POWER ESTIMATION SYSTEM</div>
+    </div>
+
+    <div class="modal-overlay" id="outputModal" onclick="closeModal(event)">
+        <div class="modal-box">
+            <div class="modal-icon" id="m-icon">⚡</div>
+            <div class="modal-title" id="m-title">Detail Indikator</div>
+            <div class="modal-value" id="m-value">Memuat konten...</div>
+            <div class="modal-desc" id="m-desc">Deskripsi komprehensif.</div>
+            <button class="modal-close-btn" onclick="toggleModalClose()">Tutup</button>
+        </div>
+    </div>
+
+    <div class="header fade-in-section">
         <div class="header-title-container">
-            <h1>💧 HydroGO <span id="header-sub" style="font-size:13px; font-weight:normal; opacity:0.85;">| Pump Power Estimator</span></h1>
+            <h1>💧 HydroGO <span id="header-sub" style="font-size:14px; font-weight:normal; opacity:0.85;">| Pump Power Estimator</span></h1>
             <div class="credits">by : Agan Muhammad Darda | Nina Amartha | Nadiya Andini Phasa</div>
         </div>
         <div class="header-controls">
-            <div style="font-size: 11px; opacity:0.9; text-align:left;">
+            <div style="font-size: 11px; opacity:0.9;">
                 <div id="header-desc">Estimasi Cerdas Daya Listrik Pompa Air</div>
-                <div id="live-clock" style="font-weight: bold; margin-top:2px;">Memuat waktu...</div>
+                <div id="live-clock" style="font-weight: bold; margin-top:2px; font-family: monospace;">Memuat waktu...</div>
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="toggle-btn" id="langToggleBtn" onclick="toggleLanguage()">🌐 EN</button>
@@ -217,38 +388,35 @@
     </div>
 
     <div class="dashboard-grid">
-        <div class="sidebar">
+        <div class="sidebar fade-in-section delay-1">
             <h2 id="title-input-param">Input Parameter</h2>
             
             <div class="control-group">
                 <div class="control-label">
                     <span class="lbl-q" id="lbl-debit">🌊 Debit Air (Q)</span>
                     <div class="input-container">
-                        <span class="input-icon">🧪</span>
-                        <input type="number" id="num-q" class="num-input" inputmode="decimal" min="1" max="100" step="0.5" value="25.0">
+                        <input type="number" id="num-q" class="num-input" inputmode="decimal" min="1" max="100" step="0.5" value="44.5">
                         <span class="unit-lbl">L/s</span>
                     </div>
                 </div>
-                <input type="range" id="input-q" min="1" max="100" value="25" step="0.5">
+                <input type="range" id="input-q" min="1" max="100" value="44.5" step="0.5">
             </div>
             
             <div class="control-group">
                 <div class="control-label">
                     <span class="lbl-h" id="lbl-head">⛰️ Head Pompa (H)</span>
                     <div class="input-container">
-                        <span class="input-icon">📐</span>
-                        <input type="number" id="num-h" class="num-input" inputmode="decimal" min="1" max="100" step="0.5" value="35.0">
+                        <input type="number" id="num-h" class="num-input" inputmode="decimal" min="1" max="100" step="0.5" value="44.0">
                         <span class="unit-lbl">m</span>
                     </div>
                 </div>
-                <input type="range" id="input-h" min="1" max="100" value="35" step="0.5">
+                <input type="range" id="input-h" min="1" max="100" value="44.0" step="0.5">
             </div>
             
             <div class="control-group">
                 <div class="control-label">
                     <span class="lbl-eta" id="lbl-efisiensi">⚙️ Efisiensi Pompa (η)</span>
                     <div class="input-container">
-                        <span class="input-icon">📈</span>
                         <input type="number" id="num-eta" class="num-input" inputmode="numeric" min="10" max="100" step="1" value="75">
                         <span class="unit-lbl">%</span>
                     </div>
@@ -265,8 +433,6 @@
                         <span class="denominator">&eta;</span>
                     </div>
                 </div>
-                
-                <div class="formula-title" id="title-sub-formula" style="margin-top:12px; border-top:1px solid var(--border-formula); padding-top:6px; font-size:10px;">Pilih Komponen untuk Penjabaran</div>
                 <div class="formula-nav">
                     <div class="btn-formula active" onclick="gantiDetailRumus('pl', this)">P</div>
                     <div class="btn-formula" onclick="gantiDetailRumus('ph', this)">Ph</div>
@@ -276,23 +442,27 @@
                 <div id="formula-detail-display" class="formula-detail-text"></div>
             </div>
             
-            <div class="main-output-card">
+            <div class="main-output-card" onclick="openMetricModal('kw')">
                 <div class="title" id="title-out-card">⚡ Kebutuhan Daya Listrik</div>
-                <div class="big-value"><span id="out-kw">0.00</span> kW</div>
+                <div class="big-value" style="font-size:34px; font-weight:800; margin:6px 0;"><span id="out-kw">0.00</span> kW</div>
                 <div class="sub-metrics">
-                    <div><b>Watt:</b> <br><span id="out-watt">0</span> W</div>
-                    <div><b>Horsepower:</b> <br><span id="out-hp">0.00</span> HP</div>
+                    <div class="clickable-metric-box" onclick="openMetricModal('w'); event.stopPropagation();">
+                        <b>Watt:</b> <br><span id="out-watt">0</span> W
+                    </div>
+                    <div class="clickable-metric-box" onclick="openMetricModal('hp'); event.stopPropagation();">
+                        <b>Horsepower:</b> <br><span id="out-hp">0.00</span> HP
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="main-content">
+        <div class="main-content fade-in-section delay-2">
             <div class="sim-card">
                 <div class="sim-header">
                     <span id="title-visualisasi">VISUALISASI SIMULASI INTENSITAS ALIRAN HIDROLIK</span>
-                    <div class="status-container">
-                        <span id="txt-badge-overload" class="badge-overload">Overload</span>
-                        <span id="sys-status-node" class="sim-status"><span id="sys-dot">●</span> <span id="sys-txt">Sistem Normal</span></span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span id="txt-badge-overload" style="font-size:10px; font-weight:bold; padding:2px 8px; border-radius:100px; color:white; display:none;">Overload</span>
+                        <span id="sys-status-node" style="font-weight:bold;"><span id="sys-dot">●</span> <span id="sys-txt">Sistem Normal</span></span>
                     </div>
                 </div>
                 <div class="canvas-container">
@@ -303,33 +473,33 @@
             <div class="mid-grid">
                 <div class="card-panel">
                     <h3 id="title-chart-komp">Komposisi Daya</h3>
-                    <div class="chart-container">
+                    <div class="chart-container" id="chartKompContainer">
                         <canvas id="chartKomposisi"></canvas>
                     </div>
                 </div>
                 
                 <div class="card-panel">
                     <h3 id="title-chart-perf">Analisis Performa Pompa</h3>
-                    <div class="chart-container">
+                    <div class="chart-container" id="chartPerfContainer">
                         <canvas id="chartPerforma"></canvas>
                     </div>
                 </div>
                 
                 <div class="card-panel">
                     <h3 id="title-info-sys">Informasi Sistem</h3>
-                    <div class="info-list">
-                        <div class="info-item"><span class="lbl" id="lbl-volt">Tegangan Jala-Jala</span><span class="val" style="color:#2b6cb0;">380 V (3-&Phi;)</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-current">Kuat Arus Beban (I)</span><span class="val" id="out-current" style="color:#b83280;">0.0 A</span></div>
+                    <div class="info-list" onclick="openMetricModal('informasi_sistem')">
+                        <div class="info-item"><span class="lbl" id="lbl-volt">Tegangan Jala-Jala</span><span class="val" style="color:#2563eb;">380 V (3-&Phi;)</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-current">Kuat Arus Beban (I)</span><span class="val" id="out-current" style="color:#db2777;">0.0 A</span></div>
                         <div class="info-item"><span class="lbl" id="lbl-freq">Frekuensi Kerja</span><span class="val">50 Hz</span></div>
                         <div class="info-item"><span class="lbl" id="lbl-safe">Batas Aman Arus</span><span class="val">60.0 A</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-hyd-power">Daya Hidrolik Netto</span><span class="val" id="out-hyd-power" style="color:#2f855a;">0.0 kW</span></div>
+                        <div class="info-item"><span class="lbl" id="lbl-hyd-power">Daya Hidrolik Netto</span><span class="val" id="out-hyd-power" style="color:#16a34a;">0.0 kW</span></div>
                     </div>
                 </div>
             </div>
             
-            <div class="trend-panel">
+            <div class="trend-panel fade-in-section delay-3">
                 <h3 id="title-trend-panel">Trend Performa (Perbandingan Berbagai Kondisi Operasional)</h3>
-                <div class="trend-row">
+                <div class="trend-row" onclick="openMetricModal('trend_performa')">
                     <div class="trend-card tc-blue"><span class="val" id="tr-low">0 kW</span><span class="lbl" id="lbl-tr-low">Debit Rendah</span></div>
                     <div class="trend-card tc-green"><span class="val" id="tr-curr">0 kW</span><span class="lbl" id="lbl-tr-curr">Kondisi Aktual</span></div>
                     <div class="trend-card tc-orange"><span class="val" id="tr-high">0 kW</span><span class="lbl" id="lbl-tr-high">Debit Tinggi</span></div>
@@ -347,12 +517,14 @@
         let ctx = null;
         
         let fluidTime = 0;
-        let currentQ = 25;
-        let currentH = 35;
+        let currentQ = 44.5;
+        let currentH = 44.0;
         let isOverload = false;
         let currentTheme = 'light';
         let currentLang = 'id';
         let activeFormulaKey = 'pl';
+
+        let cachedMetrics = { kw: "0.00 kW", w: "0 W", hp: "0.00 HP", current: "0.0 A", hyd: "0.0 kW" };
 
         const i18n = {
             id: {
@@ -363,7 +535,6 @@
                 lblHead: "⛰️ Head Pompa (H)",
                 lblEfisiensi: "⚙️ Efisiensi Pompa (η)",
                 titleMainFormula: "Rumus Utama Listrik Pompa",
-                titleSubFormula: "Pilih Komponen untuk Penjabaran",
                 titleOutCard: "⚡ Kebutuhan Daya Listrik",
                 titleVisualisasi: "VISUALISASI SIMULASI INTENSITAS ALIRAN HIDROLIK",
                 sysNormal: "Sistem Normal",
@@ -387,10 +558,15 @@
                 themeDarkBtn: "🌙 Mode Gelap",
                 themeLightBtn: "☀️ Mode Terang",
                 formula: {
-                    pl: "<strong>P = Daya Listrik Motoraktual (Watt)</strong><br>P = P<sub>hidrolik</sub> / &eta;<br>Total daya nyata yang diserap motor penggerak dari jaringan listrik jala-jala untuk menutupi losses mekanis.",
-                    ph: "<strong>Ph = Daya Hidrolik Aktual (Watt)</strong><br>P<sub>h</sub> = &rho; &middot; g &middot; Q &middot; H<br>Energi netto murni yang diberikan fluida cair. Konstanta air (&rho;) = 1000 kg/m³, Gravitasi (g) = 9.81 m/s².",
-                    ib: "<strong>I = Kuat Arus Motor (Ampere)</strong><br>I = P / (&radic;3 &middot; V &middot; cos &phi;)<br>Kebutuhan arus beban sistem listrik 3-Phase pada tegangan industri 380V dengan nilai Faktor Daya cos &phi; = 0.85.",
-                    ef: "<strong>&eta; = Efisiensi Efektif Pompa (%)</strong><br>&eta; = (P<sub>hidrolik</sub> / P<sub>listrik</sub>) &middot; 100%<br>Rasio persentase kemampuan performa mekanikal sistem pompa dalam mengubah energi listrik menjadi energi dorong fluida."
+                    pl: "<strong>P = Daya Listrik Motor Aktual (Watt)</strong><br>P = P<sub>hidrolik</sub> / &eta;<br>Total daya nyata yang diserap motor penggerak dari jaringan listrik jala-jala.",
+                    ph: "<strong>Ph = Daya Hidrolik Aktual (Watt)</strong><br>P<sub>h</sub> = &rho; &middot; g &middot; Q &middot; H<br>Energi netto murni yang diberikan fluida cair. (&rho;) = 1000 kg/m³, (g) = 9.81 m/s².",
+                    ib: "<strong>I = Kuat Arus Motor (Ampere)</strong><br>I = P / (&radic;3 &middot; V &middot; cos &phi;)<br>Kebutuhan arus listrik 3-Phase pada tegangan industri 380V dengan cos &phi; = 0.85.",
+                    ef: "<strong>&eta; = Efisiensi Efektif Pompa (%)</strong><br>&eta; = (P<sub>hidrolik</sub> / P<sub>listrik</sub>) &middot; 100%<br>Rasio kemampuan mekanikal mengubah energi listrik menjadi energi dorong fluida."
+                },
+                modal: {
+                    kw: { title: "Daya Kilowatt (kW)", desc: "Daya dalam satuan KiloWatt yang ditarik oleh motor pompa dari instalasi grid panel utama." },
+                    w: { title: "Daya Nyata (Watt)", desc: "Representasi nilai daya nyata dalam sistem satuan standar Internasional (SI) dasar sebelum dikonversi ke kW." },
+                    hp: { title: "Daya Kuda (Horsepower)", desc: "Satuan mekanis konvensional Inggris untuk mengukur output mekanikal motor penggerak." }
                 }
             },
             en: {
@@ -401,7 +577,6 @@
                 lblHead: "⛰️ Pump Head (H)",
                 lblEfisiensi: "⚙️ Pump Efficiency (η)",
                 titleMainFormula: "Main Pump Power Formula",
-                titleSubFormula: "Select Component for Breakdown",
                 titleOutCard: "⚡ Electrical Power Required",
                 titleVisualisasi: "HYDRAULIC FLOW INTENSITIES SIMULATION VISUALIZATION",
                 sysNormal: "System Normal",
@@ -425,18 +600,122 @@
                 themeDarkBtn: "🌙 Dark Mode",
                 themeLightBtn: "☀️ Light Mode",
                 formula: {
-                    pl: "<strong>P = Actual Motor Electrical Power (Watt)</strong><br>P = P<sub>hydraulic</sub> / &eta;<br>Total true power drawn by the prime mover motor from the main grid to cover mechanical and core losses.",
+                    pl: "<strong>P = Actual Motor Electrical Power (Watt)</strong><br>P = P<sub>hydraulic</sub> / &eta;<br>Total true power drawn by the prime mover motor from the main grid.",
                     ph: "<strong>Ph = Actual Hydraulic Power (Watt)</strong><br>P<sub>h</sub> = &rho; &middot; g &middot; Q &middot; H<br>Net pure fluid power output. Water density (&rho;) = 1000 kg/m³, Gravity (g) = 9.81 m/s².",
-                    ib: "<strong>I = Motor Current Load (Ampere)</strong><br>I = P / (&radic;3 &middot; V &middot; cos &phi;)<br>Estimated electric current demand for 3-Phase systems at 380V industrial voltage with Power Factor cos &phi; = 0.85.",
-                    ef: "<strong>&eta; = Effective Pump Efficiency (%)</strong><br>&eta; = (P<sub>hydraulic</sub> / P<sub>electrical</sub>) &middot; 100%<br>Percentage ratio of mechanical system output in converting electrical input into fluid kinetic drive."
+                    ib: "<strong>I = Motor Current Load (Ampere)</strong><br>I = P / (&radic;3 &middot; V &middot; cos &phi;)<br>Estimated electric current demand for 3-Phase systems at 380V industrial voltage with cos &phi; = 0.85.",
+                    ef: "<strong>&eta; = Effective Pump Efficiency (%)</strong><br>&eta; = (P<sub>hydraulic</sub> / P<sub>electrical</sub>) &middot; 100%<br>Percentage ratio of mechanical system output in converting electrical input."
+                },
+                modal: {
+                    kw: { title: "Power in Kilowatts (kW)", desc: "Electrical power in kW drawn by the mechanical pump setup from the distribution grid." },
+                    w: { title: "Active Electrical Power (Watt)", desc: "Standard International (SI) electrical base metrics unit calculation value before scaling to kilo-scale." },
+                    hp: { title: "Horsepower Output (HP)", desc: "Mechanical benchmark unit to map overall motor output capability." }
                 }
             }
         };
 
+        function openMetricModal(key) {
+            document.getElementById('m-value').style.fontSize = "14px";
+            document.getElementById('m-icon').innerText = "📋";
+            
+            const kw = cachedMetrics.kw;
+            const w = cachedMetrics.w;
+            const hp = cachedMetrics.hp;
+            const current = cachedMetrics.current;
+            const hyd = cachedMetrics.hyd;
+
+            const trLow = document.getElementById('tr-low').innerText;
+            const trCurr = document.getElementById('tr-curr').innerText;
+            const trHigh = document.getElementById('tr-high').innerText;
+            const trHead = document.getElementById('tr-head').innerText;
+            const trIdeal = document.getElementById('tr-ideal').innerText;
+
+            // 1. POP-UP GABUNGAN: INFORMASI SISTEM
+            if (key === 'informasi_sistem') {
+                document.getElementById('m-icon').innerText = "🎛️";
+                if (currentLang === 'id') {
+                    document.getElementById('m-title').innerText = "Detail Informasi Sistem";
+                    document.getElementById('m-value').innerHTML = `
+                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
+                            <p><strong>⚡ Tegangan Jala-Jala:</strong> 380 V (3-&Phi;)<br><span style="color:var(--text-muted); font-size:11px;">Tegangan suplai standar industrial 3-Fasa berfrekuensi jala-jala 50 Hz.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🔥 Kuat Arus Beban (I):</strong> <span style="color:#db2777; font-weight:bold;">${current}</span><br><span style="color:var(--text-muted); font-size:11px;">Arus nyata yang ditarik kumparan elektromotor berdasarkan beban saat ini.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>〰️ Frekuensi Kerja:</strong> 50 Hz<br><span style="color:var(--text-muted); font-size:11px;">Frekuensi siklus bolak-balik pasokan listrik AC yang konstan dari sumber daya.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🛡️ Batas Aman Arus:</strong> 60.0 A<br><span style="color:var(--text-muted); font-size:11px;">Ambang batas kontinu sebelum breaker/sistem pengaman memicu trip Overload.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🌊 Daya Hidrolik Netto:</strong> <span style="color:#16a34a; font-weight:bold;">${hyd}</span><br><span style="color:var(--text-muted); font-size:11px;">Energi mekanis murni yang sukses disalurkan baling-baling pompa ke fluida cair.</span></p>
+                        </div>
+                    `;
+                    document.getElementById('m-desc').innerText = "Seluruh parameter kelistrikan dan hidrolik penunjang operasional sistem penggerak utama pompa.";
+                } else {
+                    document.getElementById('m-title').innerText = "System Information Details";
+                    document.getElementById('m-value').innerHTML = `
+                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
+                            <p><strong>⚡ Grid Line Voltage:</strong> 380 V (3-&Phi;)<br><span style="color:var(--text-muted); font-size:11px;">Standard industrial 3-Phase utility supply voltage synchronized at 50 Hz.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🔥 Load Current (I):</strong> <span style="color:#db2777; font-weight:bold;">${current}</span><br><span style="color:var(--text-muted); font-size:11px;">Calculated running electric current traversing the induction windings.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>〰️ Frequency:</strong> 50 Hz<br><span style="color:var(--text-muted); font-size:11px;">Locked system operating utility grid alternate current frequency bound.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🛡️ Safe Current Limit:</strong> 60.0 A<br><span style="color:var(--text-muted); font-size:11px;">Maximum load protective threshold constraint before safety breaker actuation.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong>🌊 Net Hydraulic Power:</strong> <span style="color:#16a34a; font-weight:bold;">${hyd}</span><br><span style="color:var(--text-muted); font-size:11px;">True fluid kinetic output power delivered effectively straight to the water body.</span></p>
+                        </div>
+                    `;
+                    document.getElementById('m-desc').innerText = "Comprehensive mapping of active operational hardware parameters of the pumping mechanics.";
+                }
+            } 
+            // 2. POP-UP GABUNGAN: TREND PERFORMA
+            else if (key === 'trend_performa') {
+                document.getElementById('m-icon').innerText = "📈";
+                if (currentLang === 'id') {
+                    document.getElementById('m-title').innerText = "Detail Analisis Trend Performa";
+                    document.getElementById('m-value').innerHTML = `
+                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
+                            <p><strong style="color:#1e40af;">🔹 Debit Rendah (15 L/s):</strong> <b>${trLow}</b><br><span style="color:var(--text-muted); font-size:11px;">Konsumsi daya minimum jika katup aliran sengaja dibatasi di ambang bawah.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#166534;">🟢 Kondisi Aktual (Input):</strong> <b>${trCurr}</b><br><span style="color:var(--text-muted); font-size:11px;">Daya listrik nyata yang diserap motor berdasarkan variabel yang diinput saat ini.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#9a3412;">🔸 Debit Tinggi (+10 L/s):</strong> <b>${trHigh}</b><br><span style="color:var(--text-muted); font-size:11px;">Estimasi lonjakan beban listrik jika kapasitas pipa penyaluran air diperbesar.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#991b1b;">🔻 Head Ekstrim (50 m):</strong> <b>${trHead}</b><br><span style="color:var(--text-muted); font-size:11px;">Kondisi kritis pembebanan torsi tinggi akibat dorongan elevasi vertikal maksimal.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#6b21a8;">🟪 Efisiensi Ideal (85%):</strong> <b>${trIdeal}</b><br><span style="color:var(--text-muted); font-size:11px;">Target penghematan energi optimal sekiranya spesifikasi pompa ditingkatkan ke kelas premium.</span></p>
+                        </div>
+                    `;
+                    document.getElementById('m-desc').innerText = "Proyeksi komparasi kebutuhan daya listrik motor pompa di berbagai kondisi batas operasional lapangan.";
+                } else {
+                    document.getElementById('m-title').innerText = "Performance Trend Analysis Details";
+                    document.getElementById('m-value').innerHTML = `
+                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
+                            <p><strong style="color:#1e40af;">🔹 Low Flow (15 L/s):</strong> <b>${trLow}</b><br><span style="color:var(--text-muted); font-size:11px;">Power demand minimum metric when fluid throughput throttling is applied.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#166534;">🟢 Actual Condition:</strong> <b>${trCurr}</b><br><span style="color:var(--text-muted); font-size:11px;">True active power draw calculated instantly from your configuration settings.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#9a3412;">🔸 High Flow (+10 L/s):</strong> <b>${trHigh}</b><br><span style="color:var(--text-muted); font-size:11px;">Overhead electrical load scaling forecast if mechanical flow discharge scales.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#991b1b;">🔻 Extreme Head (50 m):</strong> <b>${trHead}</b><br><span style="color:var(--text-muted); font-size:11px;">Severe mechanical strain limits when pushing fluid up into heavy head static layout.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
+                            <p><strong style="color:#6b21a8;">🟪 Ideal Efficiency (85%):</strong> <b>${trIdeal}</b><br><span style="color:var(--text-muted); font-size:11px;">Optimized utility grid scale target assuming premium grade pump deployment.</span></p>
+                        </div>
+                    `;
+                    document.getElementById('m-desc').innerText = "Comparative forecast matrix plotting operational load behavior under hypothetical load boundaries.";
+                }
+            } 
+            // 3. POP-UP INDIKATOR KARTU UTAMA (KILOWATT / WATT / HP)
+            else {
+                document.getElementById('m-value').style.fontSize = "28px";
+                const modalData = i18n[currentLang].modal[key];
+                let valueText = (key === 'kw') ? kw : (key === 'w') ? w : hp;
+                let icon = (key === 'kw') ? "⚡" : (key === 'w') ? "🔌" : "🐎";
+                
+                document.getElementById('m-icon').innerText = icon;
+                document.getElementById('m-title').innerText = modalData.title;
+                document.getElementById('m-value').innerText = valueText;
+                document.getElementById('m-desc').innerText = modalData.desc;
+            }
+            
+            document.getElementById('outputModal').classList.add('active');
+        }
+
+        function toggleModalClose() {
+            document.getElementById('outputModal').classList.remove('active');
+        }
+
+        function closeModal(event) {
+            if (event.target === document.getElementById('outputModal')) {
+                toggleModalClose();
+            }
+        }
+
         function toggleTheme() {
             const body = document.documentElement;
             const btn = document.getElementById('themeToggleBtn');
-            
             if (body.getAttribute('data-theme') === 'dark') {
                 body.removeAttribute('data-theme');
                 btn.innerText = currentLang === 'id' ? i18n.id.themeDarkBtn : i18n.en.themeDarkBtn;
@@ -462,7 +741,6 @@
             document.getElementById('lbl-head').innerText = data.lblHead;
             document.getElementById('lbl-efisiensi').innerText = data.lblEfisiensi;
             document.getElementById('title-main-formula').innerText = data.titleMainFormula;
-            document.getElementById('title-sub-formula').innerText = data.titleSubFormula;
             document.getElementById('title-out-card').innerText = data.titleOutCard;
             document.getElementById('title-visualisasi').innerText = data.titleVisualisasi;
             document.getElementById('title-chart-komp').innerText = data.titleChartKomp;
@@ -480,9 +758,6 @@
             document.getElementById('lbl-tr-head').innerHTML = data.lblTrHead;
             document.getElementById('lbl-tr-ideal').innerHTML = data.lblTrIdeal;
 
-            const themeBtn = document.getElementById('themeToggleBtn');
-            themeBtn.innerText = currentTheme === 'light' ? data.themeDarkBtn : data.themeLightBtn;
-
             document.getElementById('formula-detail-display').innerHTML = data.formula[activeFormulaKey];
 
             if (chartKomposisiObj && chartPerformaObj) {
@@ -495,7 +770,7 @@
         }
 
         function updateChartThemes(isDark) {
-            const textColor = isDark ? '#f8fafc' : '#333333';
+            const textColor = isDark ? '#f8fafc' : '#1e293b';
             [chartKomposisiObj, chartPerformaObj].forEach(chart => {
                 if(chart) {
                     chart.options.plugins.legend.labels.color = textColor;
@@ -511,7 +786,6 @@
             document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula[kunci];
         }
 
-        // Optimasi Canvas Rendering untuk Layar HP High-DPI (Retina Display iOS & Android HD)
         function adaptCanvasResolution() {
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
@@ -522,34 +796,31 @@
 
         function renderFluidSimulation() {
             if (!ctx) return;
-            
             const rectW = canvas.width / (window.devicePixelRatio || 1);
             const rectH = canvas.height / (window.devicePixelRatio || 1);
-            
             ctx.clearRect(0, 0, rectW, rectH);
             
-            const tankBgColor = currentTheme === 'dark' ? "#334155" : "#e2e8f0";
-            const structuralStrokeColor = currentTheme === 'dark' ? "#64748b" : "#475569";
-            const waterColorMain = currentTheme === 'dark' ? "#3b82f6" : "#2563eb";
+            const tankBgColor = currentTheme === 'dark' ? "#1e293b" : "#e2e8f0";
+            const structuralStrokeColor = currentTheme === 'dark' ? "#475569" : "#64748b";
+            const waterColorMain = "#2563eb";
             
             const srcTankX = 30, srcTankY = 80, tankW = 60, tankH = 75;
-            const pumpX = rectW * 0.45, pumpY = 130, pumpRad = 24;
+            const pumpX = rectW * 0.45, pumpY = 135, pumpRad = 24;
             const destTankX = rectW - 90, tankDestW = 60, tankDestH = 75;
             
-            let destTankY = 100 - (currentH * 0.8);
-            if (destTankY < 15) destTankY = 15; 
+            let destTankY = 100 - (currentH * 0.7);
+            if (destTankY < 20) destTankY = 20; 
 
             let flowSpeed = (currentQ / 25) * 0.18;
             fluidTime += flowSpeed;
 
-            // Tangki Sumber
             ctx.fillStyle = tankBgColor;
             ctx.fillRect(srcTankX, srcTankY, tankW, tankH);
             ctx.strokeStyle = structuralStrokeColor;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.strokeRect(srcTankX, srcTankY, tankW, tankH);
 
-            let waterLevelSrc = tankH * (0.85 - (currentQ * 0.004));
+            let waterLevelSrc = tankH * (0.85 - (currentQ * 0.003));
             ctx.fillStyle = "#3b82f6";
             ctx.beginPath();
             ctx.moveTo(srcTankX, srcTankY + tankH);
@@ -561,17 +832,16 @@
             ctx.closePath();
             ctx.fill();
 
-            let p1 = { x: srcTankX + tankW, y: srcTankY + tankH - 20 };
+            let p1 = { x: srcTankX + tankW, y: srcTankY + tankH - 18 };
             let p2 = { x: pumpX, y: pumpY };
-            let p3 = { x: pumpX, y: destTankY + 20 };
-            let p4 = { x: destTankX, y: destTankY + 20 };
+            let p3 = { x: pumpX, y: destTankY + tankDestH - 18 };
+            let p4 = { x: destTankX, y: destTankY + tankDestH - 18 };
 
             let seg1_len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
             let seg2_len = Math.hypot(p3.x - p2.x, p3.y - p2.y);
             let seg3_len = Math.hypot(p4.x - p3.x, p4.y - p3.y);
             let totalPathLength = seg1_len + seg2_len + seg3_len;
 
-            // Pipa Cairan Background
             ctx.lineWidth = 12;
             ctx.strokeStyle = isOverload ? "rgba(239, 68, 68, 0.25)" : "rgba(59, 130, 246, 0.25)";
             ctx.beginPath();
@@ -581,11 +851,10 @@
             ctx.lineTo(p4.x, p4.y);
             ctx.stroke();
 
-            // Partikel Arus Aliran
             ctx.fillStyle = isOverload ? "#ef4444" : "#1d4ed8";
-            let numParticles = 30;
+            let numParticles = 35;
             for (let i = 0; i < numParticles; i++) {
-                let progress = ((i / numParticles) + (fluidTime * 0.04)) % 1;
+                let progress = ((i / numParticles) + (fluidTime * 0.03)) % 1;
                 let currentDist = progress * totalPathLength;
                 let ptX = 0, ptY = 0;
 
@@ -603,17 +872,11 @@
                     ptY = p3.y + (p4.y - p3.y) * ratio;
                 }
 
-                let waveOffset = Math.sin((progress * Math.PI * 10) + fluidTime) * 1.5;
                 ctx.beginPath();
-                if (currentDist > seg1_len && currentDist <= seg1_len + seg2_len) {
-                    ctx.arc(ptX + waveOffset, ptY, 3, 0, Math.PI * 2);
-                } else {
-                    ctx.arc(ptX, ptY + waveOffset, 3, 0, Math.PI * 2);
-                }
+                ctx.arc(ptX, ptY, 2.5, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // Dinding Pipa Luar
             ctx.lineWidth = 16;
             ctx.strokeStyle = structuralStrokeColor;
             ctx.globalCompositeOperation = "destination-over";
@@ -625,47 +888,36 @@
             ctx.stroke();
             ctx.globalCompositeOperation = "source-over";
 
-            // Rumah Pompa
-            ctx.fillStyle = isOverload ? "rgba(254, 226, 226, 0.9)" : "rgba(255, 255, 255, 0.8)";
+            ctx.fillStyle = isOverload ? "rgba(254, 226, 226, 0.9)" : "rgba(255, 255, 255, 0.9)";
             ctx.strokeStyle = isOverload ? "#dc2626" : structuralStrokeColor;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(pumpX, pumpY, pumpRad, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = currentTheme === 'dark' ? "#f8fafc" : "#334155";
-            ctx.beginPath();
-            ctx.arc(pumpX, pumpY, 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Impeller Kipas Pompa
             ctx.save();
             ctx.translate(pumpX, pumpY);
             ctx.rotate(fluidTime * 0.75);
-            ctx.fillStyle = currentTheme === 'dark' ? "#94a3b8" : "#4a5568";
+            ctx.fillStyle = currentTheme === 'dark' ? "#64748b" : "#4a5568";
             for (let j = 0; j < 4; j++) {
                 ctx.rotate(Math.PI / 2);
-                ctx.fillRect(-1.5, -pumpRad + 5, 3, pumpRad - 10);
-                ctx.beginPath();
-                ctx.arc(0, -pumpRad + 5, 3, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillRect(-1.5, -pumpRad + 6, 3, pumpRad - 10);
             }
             ctx.restore();
 
-            // Tangki Penerima Utama Elevasi
             ctx.fillStyle = tankBgColor;
             ctx.fillRect(destTankX, destTankY, tankDestW, tankDestH);
             ctx.strokeStyle = structuralStrokeColor;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.strokeRect(destTankX, destTankY, tankDestW, tankDestH);
 
-            let waterLevelDst = tankDestH * (0.2 + (currentQ * 0.005));
+            let waterLevelDst = tankDestH * (0.15 + (currentQ * 0.004));
             ctx.fillStyle = waterColorMain;
             ctx.beginPath();
             ctx.moveTo(destTankX, destTankY + tankDestH);
             for(let x = 0; x <= tankDestW; x++) {
-                let yWave = Math.sin((x * 0.12) + (fluidTime * 1.5)) * 1.8;
+                let yWave = Math.sin((x * 0.12) + (fluidTime * 1.5)) * 1.5;
                 ctx.lineTo(destTankX + x, destTankY + tankDestH - waterLevelDst + yWave);
             }
             ctx.lineTo(destTankX + tankDestW, destTankY + tankDestH);
@@ -713,21 +965,26 @@
 
             if (arusEstimasi > ambangBatasAmanArus) {
                 isOverload = true;
-                sysStatusNode.style.color = "#dc2626";
-                sysDot.style.color = "#dc2626";
+                sysStatusNode.style.color = "#ef4444";
+                sysDot.style.color = "#ef4444";
                 sysTxt.innerText = i18n[currentLang].sysOverload;
                 badgeOverload.style.display = "inline-block";
-                badgeOverload.style.backgroundColor = "#dc2626";
-                containerCanvas.style.background = currentTheme === 'light' ? 
-                    "linear-gradient(to bottom, #fef2f2, #fff5f5)" : "linear-gradient(to bottom, #991b1b30, #0f172a)";
+                badgeOverload.style.backgroundColor = "#ef4444";
+                containerCanvas.style.background = currentTheme === 'light' ? "#fef2f2" : "#7f1d1d30";
             } else {
                 isOverload = false;
-                sysStatusNode.style.color = "#16a34a";
-                sysDot.style.color = "#16a34a";
+                sysStatusNode.style.color = "#10b981";
+                sysDot.style.color = "#10b981";
                 sysTxt.innerText = i18n[currentLang].sysNormal;
                 badgeOverload.style.display = "none";
                 containerCanvas.style.background = "linear-gradient(to bottom, var(--bg-canvas-start), var(--bg-canvas-end))";
             }
+
+            cachedMetrics.kw = dayaListrikkW.toFixed(2) + " kW";
+            cachedMetrics.w = Math.round(dayaListrikWatt).toLocaleString(currentLang === 'id' ? 'id-ID' : 'en-US') + " W";
+            cachedMetrics.hp = horsepower.toFixed(2) + " HP";
+            cachedMetrics.current = arusEstimasi.toFixed(1) + " A";
+            cachedMetrics.hyd = dayaHidrolikkW.toFixed(1) + " kW";
 
             document.getElementById('out-kw').innerText = dayaListrikkW.toFixed(2);
             document.getElementById('out-watt').innerText = Math.round(dayaListrikWatt).toLocaleString(currentLang === 'id' ? 'id-ID' : 'en-US');
@@ -735,7 +992,7 @@
             document.getElementById('out-current').innerText = arusEstimasi.toFixed(1) + " A";
             document.getElementById('out-hyd-power').innerText = dayaHidrolikkW.toFixed(1) + " kW";
 
-            if (chartKomposisiObj && chartKomposisiObj.data) {
+            if (chartKomposisiObj) {
                 chartKomposisiObj.data.datasets[0].data = [
                     parseFloat(dayaHidrolikkW.toFixed(2)), 
                     parseFloat((totalLosseskW * 0.6).toFixed(2)), 
@@ -744,7 +1001,7 @@
                 chartKomposisiObj.update('none');
             }
 
-            if (chartPerformaObj && chartPerformaObj.data) {
+            if (chartPerformaObj) {
                 chartPerformaObj.data.datasets[0].data = [eta_percent, 100 - eta_percent];
                 chartPerformaObj.update('none');
             }
@@ -764,13 +1021,9 @@
         }
 
         function sinkronDariKetik() {
-            let qRaw = document.getElementById('num-q').value;
-            let hRaw = document.getElementById('num-h').value;
-            let etaRaw = document.getElementById('num-eta').value;
-
-            let qVal = qRaw === "" ? 1.0 : parseFloat(qRaw);
-            let hVal = hRaw === "" ? 1.0 : parseFloat(hRaw);
-            let etaVal = etaRaw === "" ? 10 : parseFloat(etaRaw);
+            let qVal = parseFloat(document.getElementById('num-q').value) || 1;
+            let hVal = parseFloat(document.getElementById('num-h').value) || 1;
+            let etaVal = parseFloat(document.getElementById('num-eta').value) || 10;
 
             if (qVal < 1) qVal = 1; if (qVal > 100) qVal = 100;
             if (hVal < 1) hVal = 1; if (hVal > 100) hVal = 100;
@@ -779,36 +1032,110 @@
             document.getElementById('input-q').value = qVal;
             document.getElementById('input-h').value = hVal;
             document.getElementById('input-eta').value = etaVal;
-            
             hitungDaya();
         }
 
         window.addEventListener('load', function() {
             canvas = document.getElementById('canvasFluida');
             ctx = canvas.getContext('2d');
-            
             adaptCanvasResolution();
 
-            const ctxK = document.getElementById('chartKomposisi').getContext('2d');
-            const ctxP = document.getElementById('chartPerforma').getContext('2d');
+            const ctxK = document.getElementById('chartKomposisi');
+            const ctxP = document.getElementById('chartPerforma');
 
+            // 4. POP-UP GABUNGAN: KOMPOSISI DAYA
             chartKomposisiObj = new Chart(ctxK, {
                 type: 'doughnut',
                 data: {
                     labels: i18n[currentLang].chartLabelsKomp,
                     datasets: [{ data: [0, 0, 0], backgroundColor: ['#2563eb', '#ea580c', '#dc2626'] }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } },
+                    onClick: () => {
+                        const d1 = chartKomposisiObj.data.datasets[0].data[0].toFixed(2) + " kW";
+                        const d2 = chartKomposisiObj.data.datasets[0].data[1].toFixed(2) + " kW";
+                        const d3 = chartKomposisiObj.data.datasets[0].data[2].toFixed(2) + " kW";
+                        
+                        document.getElementById('m-icon').innerText = "📊";
+                        document.getElementById('m-value').style.fontSize = "14px";
+                        
+                        if (currentLang === 'id') {
+                            document.getElementById('m-title').innerText = "Rangkuman Komposisi Daya";
+                            document.getElementById('m-value').innerHTML = `
+                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
+                                    <p><strong>🔹 Daya Hidrolik Netto:</strong> ${d1}</p>
+                                    <p><strong>🔸 Kerugian Elektrikal Motor:</strong> ${d2}</p>
+                                    <p><strong>🔻 Kerugian Gesekan Mekanis:</strong> ${d3}</p>
+                                </div>
+                            `;
+                            document.getElementById('m-desc').innerText = "Rincian menyeluruh alokasi pembagian daya nyata listrik dari grid jala-jala utama industri.";
+                        } else {
+                            document.getElementById('m-title').innerText = "Power Composition Summary";
+                            document.getElementById('m-value').innerHTML = `
+                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
+                                    <p><strong>🔹 Net Hydraulic Power:</strong> ${d1}</p>
+                                    <p><strong>🔸 Motor Electrical Losses:</strong> ${d2}</p>
+                                    <p><strong>🔻 Mechanical Friction Losses:</strong> ${d3}</p>
+                                </div>
+                            `;
+                            document.getElementById('m-desc').innerText = "Comprehensive partition logs mapping input grid power drawn by the motor load.";
+                        }
+                        document.getElementById('outputModal').classList.add('active');
+                    }
+                }
             });
 
+            // 5. POP-UP GABUNGAN: ANALISIS PERFORMA POMPA
             chartPerformaObj = new Chart(ctxP, {
                 type: 'doughnut',
                 data: {
                     labels: i18n[currentLang].chartLabelsPerf,
-                    datasets: [{ data: [0, 0], backgroundColor: ['#16a34a', '#f1f5f9'] }]
+                    datasets: [{ data: [0, 0], backgroundColor: ['#10b981', '#cbd5e0'] }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } },
+                    onClick: () => {
+                        const ef = chartPerformaObj.data.datasets[0].data[0].toFixed(0) + " %";
+                        const rk = chartPerformaObj.data.datasets[0].data[1].toFixed(0) + " %";
+                        
+                        document.getElementById('m-icon').innerText = "📈";
+                        document.getElementById('m-value').style.fontSize = "14px";
+                        
+                        if (currentLang === 'id') {
+                            document.getElementById('m-title').innerText = "Rangkuman Analisis Performa";
+                            document.getElementById('m-value').innerHTML = `
+                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
+                                    <p><strong>🟢 Efisiensi Aktual:</strong> ${ef}</p>
+                                    <p><strong>⚪ Rugi Kalor (Disipasi):</strong> ${rk}</p>
+                                </div>
+                            `;
+                            document.getElementById('m-desc').innerText = "Rasio perbandingan antara total daya berguna pada zat cair terhadap sisa energi yang terbuang menjadi energi panas.";
+                        } else {
+                            document.getElementById('m-title').innerText = "Performance Analysis Summary";
+                            document.getElementById('m-value').innerHTML = `
+                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
+                                    <p><strong>🟢 Actual Efficiency:</strong> ${ef}</p>
+                                    <p><strong>⚪ Thermal Dissipation Loss:</strong> ${rk}</p>
+                                </div>
+                            `;
+                            document.getElementById('m-desc').innerText = "Percentage tracking summary showing successful kinetic kinetic transition versus unrecoverable thermal heating.";
+                        }
+                        document.getElementById('outputModal').classList.add('active');
+                    }
+                }
             });
+
+            // Memicu klik rangkuman saat pembungkus luar grafis ditekan
+            document.getElementById('chartKompContainer').onclick = () => chartKomposisiObj.options.onClick();
+            document.getElementById('chartPerfContainer').onclick = () => chartPerformaObj.options.onClick();
+
+            hitungDaya();
+            renderFluidSimulation();
 
             document.getElementById('input-q').addEventListener('input', sinkronDariSlider);
             document.getElementById('input-h').addEventListener('input', sinkronDariSlider);
@@ -820,8 +1147,13 @@
 
             document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula.pl;
 
-            renderFluidSimulation();
-            sinkronDariSlider();
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 800);
+                }
+            }, 1500);
 
             setInterval(() => {
                 const now = new Date();
@@ -831,12 +1163,7 @@
             }, 1000);
         });
 
-        // Optimasi auto-resize yang presisi saat rotasi layar (portrait/landscape) di HP
-        window.addEventListener('resize', () => {
-            if (canvas) {
-                adaptCanvasResolution();
-            }
-        });
+        window.addEventListener('resize', () => { if (canvas) adaptCanvasResolution(); });
     </script>
 </body>
 </html>
