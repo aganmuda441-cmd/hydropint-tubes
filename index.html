@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HydroGO - Pump Power Estimator</title>
+    <title>HydroPoint - Pump Power Estimator</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="HydroGO">
+    <meta name="apple-mobile-web-app-title" content="HydroPoint">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -51,6 +51,27 @@
             --shadow-md: 0 20px 25px -5px rgba(0,0,0,0.3);
         }
 
+        /* HD Rendering & Smoothing Optimizations */
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* SVG Icon Utilities */
+        .hd-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            fill: currentColor;
+        }
+        .hd-icon-large {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+        }
+
         /* ----------------------------------------------------
            INTRO SPLASH SCREEN
         ---------------------------------------------------- */
@@ -81,7 +102,7 @@
             border-radius: 0% 100% 100% 100%;
             transform: rotate(45deg);
             animation: drip 1.4s ease-in-out infinite alternate;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
         }
 
         .water-ripple {
@@ -340,7 +361,8 @@
             text-align: center; color: var(--text-main);
         }
         .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-icon { font-size: 40px; margin-bottom: 12px; }
+        .modal-icon { display: flex; justify-content: center; color: #2563eb; }
+        [data-theme="dark"] .modal-icon { color: #38bdf8; }
         .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #2563eb; }
         [data-theme="dark"] .modal-title { color: #38bdf8; }
         .modal-value { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
@@ -356,13 +378,15 @@
             <div class="water-drop"></div>
             <div class="water-ripple"></div>
         </div>
-        <div class="splash-title">HydroGO</div>
+        <div class="splash-title">HydroPoint</div>
         <div class="splash-subtitle">PUMP POWER ESTIMATION SYSTEM</div>
     </div>
 
     <div class="modal-overlay" id="outputModal" onclick="closeModal(event)">
         <div class="modal-box">
-            <div class="modal-icon" id="m-icon">⚡</div>
+            <div class="modal-icon" id="m-icon">
+                <svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
+            </div>
             <div class="modal-title" id="m-title">Detail Indikator</div>
             <div class="modal-value" id="m-value">Memuat konten...</div>
             <div class="modal-desc" id="m-desc">Deskripsi komprehensif.</div>
@@ -372,7 +396,11 @@
 
     <div class="header fade-in-section">
         <div class="header-title-container">
-            <h1>💧 HydroGO <span id="header-sub" style="font-size:14px; font-weight:normal; opacity:0.85;">| Pump Power Estimator</span></h1>
+            <h1>
+                <svg class="hd-icon" style="width:28px; height:28px;" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                HydroPoint 
+                <span id="header-sub" style="font-size:14px; font-weight:normal; opacity:0.85;">| Pump Power Estimator</span>
+            </h1>
             <div class="credits">by : Agan Muhammad Darda | Nina Amartha | Nadiya Andini Phasa</div>
         </div>
         <div class="header-controls">
@@ -526,6 +554,15 @@
 
         let cachedMetrics = { kw: "0.00 kW", w: "0 W", hp: "0.00 HP", current: "0.0 A", hyd: "0.0 kW" };
 
+        // Definisi Kumpulan Icon SVG HD murni teroptimasi
+        const svgIcons = {
+            kw: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M11.5 20h-7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v7h-2V6H5v12h6.5v2zm7-2h3v2h-3v3l-4-4 4-4v3zM11 7h2v2h-2V7zm0 4h2v4h-2v-4z"/></svg>`,
+            w: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M16 7V3h-2v4h-4V3H8v4H6v2h12V7h-2zm-8 4h8v7c0 2.21-1.79 4-4 4s-4-1.79-4-4v-7z"/></svg>`,
+            hp: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 6h-2v2h2v2h-2v2h-2v-2H9V9h6v2z"/></svg>`,
+            sys: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>`,
+            trend: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 15.69l1.5 2.8z"/></svg>`
+        };
+
         const i18n = {
             id: {
                 headerSub: "| Pump Power Estimator",
@@ -615,7 +652,7 @@
 
         function openMetricModal(key) {
             document.getElementById('m-value').style.fontSize = "14px";
-            document.getElementById('m-icon').innerText = "📋";
+            const mIconContainer = document.getElementById('m-icon');
             
             const kw = cachedMetrics.kw;
             const w = cachedMetrics.w;
@@ -629,9 +666,8 @@
             const trHead = document.getElementById('tr-head').innerText;
             const trIdeal = document.getElementById('tr-ideal').innerText;
 
-            // 1. POP-UP GABUNGAN: INFORMASI SISTEM
             if (key === 'informasi_sistem') {
-                document.getElementById('m-icon').innerText = "🎛️";
+                mIconContainer.innerHTML = svgIcons.sys;
                 if (currentLang === 'id') {
                     document.getElementById('m-title').innerText = "Detail Informasi Sistem";
                     document.getElementById('m-value').innerHTML = `
@@ -658,9 +694,8 @@
                     document.getElementById('m-desc').innerText = "Comprehensive mapping of active operational hardware parameters of the pumping mechanics.";
                 }
             } 
-            // 2. POP-UP GABUNGAN: TREND PERFORMA
             else if (key === 'trend_performa') {
-                document.getElementById('m-icon').innerText = "📈";
+                mIconContainer.innerHTML = svgIcons.trend;
                 if (currentLang === 'id') {
                     document.getElementById('m-title').innerText = "Detail Analisis Trend Performa";
                     document.getElementById('m-value').innerHTML = `
@@ -687,14 +722,12 @@
                     document.getElementById('m-desc').innerText = "Comparative forecast matrix plotting operational load behavior under hypothetical load boundaries.";
                 }
             } 
-            // 3. POP-UP INDIKATOR KARTU UTAMA (KILOWATT / WATT / HP)
             else {
                 document.getElementById('m-value').style.fontSize = "28px";
                 const modalData = i18n[currentLang].modal[key];
                 let valueText = (key === 'kw') ? kw : (key === 'w') ? w : hp;
-                let icon = (key === 'kw') ? "⚡" : (key === 'w') ? "🔌" : "🐎";
                 
-                document.getElementById('m-icon').innerText = icon;
+                mIconContainer.innerHTML = svgIcons[key];
                 document.getElementById('m-title').innerText = modalData.title;
                 document.getElementById('m-value').innerText = valueText;
                 document.getElementById('m-desc').innerText = modalData.desc;
@@ -786,11 +819,16 @@
             document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula[kunci];
         }
 
+        // FUNGSI UTAMA HD CANVAS OPTIMIZATION
         function adaptCanvasResolution() {
             const rect = canvas.getBoundingClientRect();
+            // devicePixelRatio membaca kepadatan pixel layar saat ini (termasuk rasio Zoom browser)
             const dpr = window.devicePixelRatio || 1;
+            
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
+            
+            ctx.resetTransform(); // Reset agar transformasi skala tidak menumpuk saat di-resize
             ctx.scale(dpr, dpr);
         }
 
@@ -1043,7 +1081,9 @@
             const ctxK = document.getElementById('chartKomposisi');
             const ctxP = document.getElementById('chartPerforma');
 
-            // 4. POP-UP GABUNGAN: KOMPOSISI DAYA
+            // Set konfigurasi devicePixelRatio global untuk Chart.js (Agar Grafik Chart HD saat di-zoom)
+            Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
+
             chartKomposisiObj = new Chart(ctxK, {
                 type: 'doughnut',
                 data: {
@@ -1059,8 +1099,8 @@
                         const d2 = chartKomposisiObj.data.datasets[0].data[1].toFixed(2) + " kW";
                         const d3 = chartKomposisiObj.data.datasets[0].data[2].toFixed(2) + " kW";
                         
-                        document.getElementById('m-icon').innerText = "📊";
                         document.getElementById('m-value').style.fontSize = "14px";
+                        document.getElementById('m-icon').innerHTML = svgIcons.trend;
                         
                         if (currentLang === 'id') {
                             document.getElementById('m-title').innerText = "Rangkuman Komposisi Daya";
@@ -1088,7 +1128,6 @@
                 }
             });
 
-            // 5. POP-UP GABUNGAN: ANALISIS PERFORMA POMPA
             chartPerformaObj = new Chart(ctxP, {
                 type: 'doughnut',
                 data: {
@@ -1103,8 +1142,8 @@
                         const ef = chartPerformaObj.data.datasets[0].data[0].toFixed(0) + " %";
                         const rk = chartPerformaObj.data.datasets[0].data[1].toFixed(0) + " %";
                         
-                        document.getElementById('m-icon').innerText = "📈";
                         document.getElementById('m-value').style.fontSize = "14px";
+                        document.getElementById('m-icon').innerHTML = svgIcons.trend;
                         
                         if (currentLang === 'id') {
                             document.getElementById('m-title').innerText = "Rangkuman Analisis Performa";
@@ -1130,7 +1169,6 @@
                 }
             });
 
-            // Memicu klik rangkuman saat pembungkus luar grafis ditekan
             document.getElementById('chartKompContainer').onclick = () => chartKomposisiObj.options.onClick();
             document.getElementById('chartPerfContainer').onclick = () => chartPerformaObj.options.onClick();
 
@@ -1163,7 +1201,12 @@
             }, 1000);
         });
 
-        window.addEventListener('resize', () => { if (canvas) adaptCanvasResolution(); });
+        // Event listener pendeteksi perubahan zoom / ukuran layar
+        window.addEventListener('resize', () => { 
+            if (canvas) {
+                adaptCanvasResolution();
+            } 
+        });
     </script>
 </body>
 </html>
