@@ -26,7 +26,7 @@
             --bg-canvas-start: #f0fdf4;
             --bg-canvas-end: #f8fafc;
             --blueprint-line: rgba(37, 99, 235, 0.04);
-            --blueprint-accent: rgba(37, 99, 235, 0.08);
+            --blueprint-accent: rgba(37, 99, 235, 0.04);
             --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
             --shadow-md: 0 12px 20px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.07);
             --radius-main: 24px;
@@ -72,9 +72,7 @@
             margin-bottom: 12px;
         }
 
-        /* ----------------------------------------------------
-           INTRO SPLASH SCREEN
-        ---------------------------------------------------- */
+        /* INTRO SPLASH SCREEN */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -140,9 +138,7 @@
             100% { width: 100px; height: 100px; opacity: 0; transform: scale(1.3); }
         }
 
-        /* ----------------------------------------------------
-           BACKGROUND BLUEPRINT GRID
-        ---------------------------------------------------- */
+        /* BACKGROUND BLUEPRINT GRID */
         body { 
             background-color: var(--bg-body); 
             color: var(--text-main); 
@@ -153,54 +149,14 @@
             min-height: 100vh;
             background-image: 
                 linear-gradient(var(--blueprint-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px),
-                linear-gradient(var(--blueprint-accent) 2px, transparent 2px),
-                linear-gradient(90deg, var(--blueprint-accent) 2px, transparent 2px);
-            background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
-        }
-
-        body::before {
-            content: "P = (ρ · g · Q · H) / η  |  I = P / (√3 · V · cosφ)  |  Q = A · v";
-            position: fixed;
-            bottom: 5%; left: 2%;
-            font-family: 'Cambria', serif;
-            font-size: 14px; font-style: italic;
-            color: var(--blueprint-accent);
-            white-space: nowrap; pointer-events: none;
-            transform: rotate(-3deg); z-index: -1;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0; right: 40px; width: 2px; height: 100%;
-            background: repeating-linear-gradient(to bottom, var(--blueprint-accent), var(--blueprint-accent) 2px, transparent 2px, transparent 15px);
-            box-shadow: -5px 0 0 var(--blueprint-accent);
-            pointer-events: none; z-index: -1; opacity: 0.7;
+                linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px);
+            background-size: 20px 20px, 20px 20px;
         }
 
         * { 
             box-sizing: border-box; margin: 0; padding: 0; 
             transition: background-color 0.3s, border-color 0.3s;
             -webkit-tap-highlight-color: transparent; 
-        }
-
-        .fade-in-section {
-            opacity: 0;
-            transform: translateY(15px);
-            animation: smoothReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-
-        @media (prefers-reduced-motion: reduce) {
-            .fade-in-section { animation: none; opacity: 1; transform: none; }
-            .water-drop, .water-ripple { animation: none; }
-        }
-
-        @keyframes smoothReveal {
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .sidebar, .card-panel, .trend-panel, .sim-card {
@@ -270,7 +226,6 @@
         #input-q::-webkit-slider-thumb { background: #2563eb; }
         #input-h::-webkit-slider-thumb { background: #16a34a; }
         #input-eta::-webkit-slider-thumb { background: #ea580c; }
-        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
         /* Formula Box */
         .formula-box { background: var(--bg-formula); border: 1px solid var(--border-formula); padding: 14px; border-radius: var(--radius-sub); font-size: 12px; color: var(--text-sub); }
@@ -291,7 +246,7 @@
             color: white; padding: 20px; border-radius: var(--radius-sub); text-align: center; 
             box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25); cursor: pointer;
         }
-        .main-output-card:hover { transform: scale(1.02); box-shadow: 0 12px 24px rgba(29, 78, 216, 0.35); }
+        .main-output-card:hover { transform: scale(1.02); }
         .main-output-card .big-value { font-size: 34px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px; }
         
         /* Grid Sub-Metrik Output */
@@ -311,18 +266,29 @@
         
         .card-panel h3 { font-size: 13px; color: var(--text-main); text-transform: uppercase; margin-bottom: 12px; border-bottom: 2px solid var(--border-light); padding-bottom: 6px; }
         
-        /* Chart Container */
+        /* Chart Overlay Interactivity Fix */
+        .chart-container-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+        .chart-click-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            background: transparent;
+        }
         .chart-container { 
             position: relative; 
             height: 180px; 
             width: 100%; 
             display: block;
-            cursor: pointer;
         }
         
         .info-list { display: flex; flex-direction: column; gap: 10px; font-size: 12px; cursor: pointer; }
-        .info-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; transition: padding-left 0.2s; }
-        .info-item:hover { padding-left: 4px; color: #2563eb; }
+        .info-item { display: flex; flex-direction: column; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; }
+        .info-item:hover .info-row { color: #2563eb; }
+        .info-row { display: flex; justify-content: space-between; width: 100%; }
+        .info-subdesc { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
         .info-item span.val { font-weight: bold; }
         
         /* Trend Performa Row */
@@ -356,19 +322,27 @@
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-box {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            padding: 24px; border-radius: var(--radius-main); width: 90%; max-width: 440px;
+            padding: 24px; border-radius: var(--radius-main); width: 95%; max-width: 520px;
             box-shadow: var(--shadow-md); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: center; color: var(--text-main);
+            text-align: center; color: var(--text-main); max-height: 85vh; overflow-y: auto;
         }
         .modal-overlay.active .modal-box { transform: scale(1); }
         .modal-icon { display: flex; justify-content: center; color: #2563eb; }
         [data-theme="dark"] .modal-icon { color: #38bdf8; }
         .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #2563eb; }
         [data-theme="dark"] .modal-title { color: #38bdf8; }
-        .modal-value { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
-        .modal-desc { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 20px; }
+        .modal-value { font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+        .modal-desc { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 20px; text-align: left; background: var(--border-light); padding: 14px; border-radius: 12px; }
         .modal-close-btn { background: #2563eb; color: white; border: none; padding: 10px 24px; font-weight: bold; border-radius: 100px; cursor: pointer; width: 100%; }
         .modal-close-btn:hover { background: #1d4ed8; }
+
+        /* Style List di Dalam Modal */
+        .modal-item-list { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+        .modal-item-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; }
+        .modal-item-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13.5px; margin-bottom: 3px; }
+        .modal-item-subtext { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+        .modal-formula-badge { font-family: monospace; font-size: 11px; background: var(--bg-formula); color: #1e40af; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        [data-theme="dark"] .modal-formula-badge { color: #60a5fa; }
     </style>
 </head>
 <body>
@@ -388,7 +362,7 @@
                 <svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
             </div>
             <div class="modal-title" id="m-title">Detail Indikator</div>
-            <div class="modal-value" id="m-value">Memuat konten...</div>
+            <div class="modal-value" id="m-value">Memuat nilai...</div>
             <div class="modal-desc" id="m-desc">Deskripsi komprehensif.</div>
             <button class="modal-close-btn" onclick="toggleModalClose()">Tutup</button>
         </div>
@@ -472,7 +446,7 @@
             
             <div class="main-output-card" onclick="openMetricModal('kw')">
                 <div class="title" id="title-out-card">⚡ Kebutuhan Daya Listrik</div>
-                <div class="big-value" style="font-size:34px; font-weight:800; margin:6px 0;"><span id="out-kw">0.00</span> kW</div>
+                <div class="big-value"><span id="out-kw">0.00</span> kW</div>
                 <div class="sub-metrics">
                     <div class="clickable-metric-box" onclick="openMetricModal('w'); event.stopPropagation();">
                         <b>Watt:</b> <br><span id="out-watt">0</span> W
@@ -501,26 +475,47 @@
             <div class="mid-grid">
                 <div class="card-panel">
                     <h3 id="title-chart-komp">Komposisi Daya</h3>
-                    <div class="chart-container" id="chartKompContainer">
-                        <canvas id="chartKomposisi"></canvas>
+                    <div class="chart-container-wrapper" onclick="openMetricModal('komposisi_daya')">
+                        <div class="chart-click-overlay"></div>
+                        <div class="chart-container">
+                            <canvas id="chartKomposisi"></canvas>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="card-panel">
                     <h3 id="title-chart-perf">Analisis Performa Pompa</h3>
-                    <div class="chart-container" id="chartPerfContainer">
-                        <canvas id="chartPerforma"></canvas>
+                    <div class="chart-container-wrapper" onclick="openMetricModal('analisis_performa')">
+                        <div class="chart-click-overlay"></div>
+                        <div class="chart-container">
+                            <canvas id="chartPerforma"></canvas>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="card-panel">
                     <h3 id="title-info-sys">Informasi Sistem</h3>
                     <div class="info-list" onclick="openMetricModal('informasi_sistem')">
-                        <div class="info-item"><span class="lbl" id="lbl-volt">Tegangan Jala-Jala</span><span class="val" style="color:#2563eb;">380 V (3-&Phi;)</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-current">Kuat Arus Beban (I)</span><span class="val" id="out-current" style="color:#db2777;">0.0 A</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-freq">Frekuensi Kerja</span><span class="val">50 Hz</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-safe">Batas Aman Arus</span><span class="val">60.0 A</span></div>
-                        <div class="info-item"><span class="lbl" id="lbl-hyd-power">Daya Hidrolik Netto</span><span class="val" id="out-hyd-power" style="color:#16a34a;">0.0 kW</span></div>
+                        <div class="info-item">
+                            <div class="info-row"><span class="lbl" id="lbl-volt">Tegangan Jala-Jala</span><span class="val" style="color:#2563eb;">380 V (3-&Phi;)</span></div>
+                            <div class="info-subdesc" id="subdesc-volt">Tegangan suplai standar industrial 3-Fasa berfrekuensi jala-jala 50 Hz.</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-row"><span class="lbl" id="lbl-current">Kuat Arus Beban (I)</span><span class="val" id="out-current" style="color:#db2777;">0.0 A</span></div>
+                            <div class="info-subdesc" id="subdesc-current">Arus nyata yang ditarik kumparan elektromotor berdasarkan beban saat ini.</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-row"><span class="lbl" id="lbl-freq">Frekuensi Kerja</span><span class="val">50 Hz</span></div>
+                            <div class="info-subdesc" id="subdesc-freq">Frekuensi siklus bolak-balik pasokan listrik AC yang konstan dari sumber daya.</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-row"><span class="lbl" id="lbl-safe">Batas Aman Arus</span><span class="val">60.0 A</span></div>
+                            <div class="info-subdesc" id="subdesc-safe">Ambang batas kontinu sebelum breaker/sistem pengaman memicu trip Overload.</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-row"><span class="lbl" id="lbl-hyd-power">Daya Hidrolik Netto</span><span class="val" id="out-hyd-power" style="color:#16a34a;">0.0 kW</span></div>
+                            <div class="info-subdesc" id="subdesc-hyd">Energi mekanis murni yang sukses disalurkan baling-baling pompa ke fluida cair.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -554,7 +549,6 @@
 
         let cachedMetrics = { kw: "0.00 kW", w: "0 W", hp: "0.00 HP", current: "0.0 A", hyd: "0.0 kW" };
 
-        // Definisi Kumpulan Icon SVG HD murni teroptimasi
         const svgIcons = {
             kw: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M11.5 20h-7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v7h-2V6H5v12h6.5v2zm7-2h3v2h-3v3l-4-4 4-4v3zM11 7h2v2h-2V7zm0 4h2v4h-2v-4z"/></svg>`,
             w: `<svg class="hd-icon hd-icon-large" viewBox="0 0 24 24"><path d="M16 7V3h-2v4h-4V3H8v4H6v2h12V7h-2zm-8 4h8v7c0 2.21-1.79 4-4 4s-4-1.79-4-4v-7z"/></svg>`,
@@ -584,7 +578,12 @@
                 lblFreq: "Frekuensi Kerja",
                 lblSafe: "Batas Aman Arus",
                 lblHydPower: "Daya Hidrolik Netto",
-                titleTrendPanel: "Trend Performa",
+                subdescVolt: "Tegangan suplai standar industrial 3-Fasa berfrekuensi jala-jala 50 Hz.",
+                subdescCurrent: "Arus nyata yang ditarik kumparan elektromotor berdasarkan beban saat ini.",
+                subdescFreq: "Frekuensi siklus bolak-balik pasokan listrik AC yang konstan dari sumber daya.",
+                subdescSafe: "Ambang batas kontinu sebelum breaker/sistem pengaman memicu trip Overload.",
+                subdescHyd: "Energi mekanis murni yang sukses disalurkan baling-baling pompa ke fluida cair.",
+                titleTrendPanel: "Trend Performa (Perbandingan Berbagai Kondisi Operasional)",
                 lblTrLow: "Debit Rendah<br>(15 L/s)",
                 lblTrCurr: "Kondisi Aktual<br>(Sesuai Input)",
                 lblTrHigh: "Debit Tinggi<br>(+10 L/s)",
@@ -601,16 +600,16 @@
                     ef: "<strong>&eta; = Efisiensi Efektif Pompa (%)</strong><br>&eta; = (P<sub>hidrolik</sub> / P<sub>listrik</sub>) &middot; 100%<br>Rasio kemampuan mekanikal mengubah energi listrik menjadi energi dorong fluida."
                 },
                 modal: {
-                    kw: { title: "Daya Kilowatt (kW)", desc: "Daya dalam satuan KiloWatt yang ditarik oleh motor pompa dari instalasi grid panel utama." },
-                    w: { title: "Daya Nyata (Watt)", desc: "Representasi nilai daya nyata dalam sistem satuan standar Internasional (SI) dasar sebelum dikonversi ke kW." },
-                    hp: { title: "Daya Kuda (Horsepower)", desc: "Satuan mekanis konvensional Inggris untuk mengukur output mekanikal motor penggerak." }
+                    kw: { title: "Daya Kilowatt (kW)", desc: "Daya dalam satuan KiloWatt yang ditarik oleh motor pompa dari instalasi grid panel utama.<br><br><strong>Aplikasi Praktis:</strong> Digunakan untuk penentuan rating Circuit Breaker (MCB/MCCB) utama dan kalkulasi biaya operasional PLN bulanan.<br><br><strong>Rumus Konversi dasar:</strong><br><span style='font-family:monospace; color:#2563eb;'>kW = Watt / 1000</span>" },
+                    w: { title: "Daya Nyata (Watt)", desc: "Representasi nilai daya nyata dalam sistem satuan standar Internasional (SI) dasar sebelum dikonversi ke skala kilo.<br><br><strong>Prinsip Fisika:</strong> Menggambarkan laju konsumsi energi listrik riil per detik (1 Joule/detik) yang digunakan oleh gulungan stator motor listrik pompa.<br><br><strong>Rumus Utama:</strong><br><span style='font-family:monospace; color:#2563eb;'>P = (ρ · g · Q · H) / η</span>" },
+                    hp: { title: "Daya Kuda (Horsepower)", desc: "Satuan mekanis konvensional Inggris untuk mengukur output daya mekanikal murni pada poros motor penggerak.<br><br><strong>Aplikasi Praktis:</strong> Sangat krusial saat melakukan pemesanan (procurement) unit motor baru di pasar standar industri internasional yang sering memakai penamaan HP.<br><br><strong>Rumus Konversi:</strong><br><span style='font-family:monospace; color:#2563eb;'>HP = Watt / 745.7</span>" }
                 }
             },
             en: {
                 headerSub: "| Pump Power Estimator",
                 headerDesc: "Smart Estimation of Water Pump Electrical Power",
                 titleInputParam: "Input Parameters",
-                lblDebit: "🌊 Water Flow Rate (Q)",
+                lblDebit: "🌐 Water Flow Rate (Q)",
                 lblHead: "⛰️ Pump Head (H)",
                 lblEfisiensi: "⚙️ Pump Efficiency (η)",
                 titleMainFormula: "Main Pump Power Formula",
@@ -626,7 +625,12 @@
                 lblFreq: "Operating Frequency",
                 lblSafe: "Safe Current Limit",
                 lblHydPower: "Net Hydraulic Power",
-                titleTrendPanel: "Performance Trend",
+                subdescVolt: "Standard industrial 3-Phase supply voltage with 50 Hz grid frequency line.",
+                subdescCurrent: "Real current drawn by electromotor windings based on the present load.",
+                subdescFreq: "Alternating cycle frequency of AC power supply constant from the grid source.",
+                subdescSafe: "Continuous limit threshold before the safety breaker system triggers an Overload trip.",
+                subdescHyd: "Pure mechanical energy successfully delivered by the pump impeller to the fluid.",
+                titleTrendPanel: "Performance Trend (Comparative Operational Conditions)",
                 lblTrLow: "Low Flow Rate<br>(15 L/s)",
                 lblTrCurr: "Actual Condition<br>(As Inputted)",
                 lblTrHigh: "High Flow Rate<br>(+10 L/s)",
@@ -643,16 +647,49 @@
                     ef: "<strong>&eta; = Effective Pump Efficiency (%)</strong><br>&eta; = (P<sub>hydraulic</sub> / P<sub>electrical</sub>) &middot; 100%<br>Percentage ratio of mechanical system output in converting electrical input."
                 },
                 modal: {
-                    kw: { title: "Power in Kilowatts (kW)", desc: "Electrical power in kW drawn by the mechanical pump setup from the distribution grid." },
-                    w: { title: "Active Electrical Power (Watt)", desc: "Standard International (SI) electrical base metrics unit calculation value before scaling to kilo-scale." },
-                    hp: { title: "Horsepower Output (HP)", desc: "Mechanical benchmark unit to map overall motor output capability." }
+                    kw: { title: "Power in Kilowatts (kW)", desc: "Electrical power in kW drawn by the mechanical pump setup from the distribution grid.<br><br><strong>Applications:</strong> Sizing main protection devices and structural utility bill tracking.<br><br><strong>Conversion Rules:</strong><br><span style='font-family:monospace; color:#2563eb;'>kW = Watt / 1000</span>" },
+                    w: { title: "Active Electrical Power (Watt)", desc: "Standard International (SI) electrical base metrics unit calculation value before scaling to kilo-scale.<br><br><strong>Core Physics:</strong> Represents electrical energy consumed per second.<br><br><strong>Formula:</strong><br><span style='font-family:monospace; color:#2563eb;'>P = (ρ · g · Q · H) / η</span>" },
+                    hp: { title: "Horsepower Output (HP)", desc: "Mechanical benchmark unit to map overall motor output capability.<br><br><strong>Applications:</strong> Critical for motor engineering datasheets and heavy machinery classification procurement parameters.<br><br><strong>Formula:</strong><br><span style='font-family:monospace; color:#2563eb;'>HP = Watt / 745.7</span>" }
                 }
             }
         };
 
+        // Mengitung bilangan Reynolds dan menentukan jenis rejim aliran air secara ilmiah
+        function hitungRejimAliran(Q_liters) {
+            const rho = 1000; 
+            const mu = 0.001001; 
+            const D = 0.15; 
+            
+            const Q_m3s = Q_liters / 1000;
+            const A = (Math.PI * Math.pow(D, 2)) / 4;
+            const v = Q_m3s / A; 
+            
+            const Re = (rho * v * D) / mu; 
+            
+            let tipe = "";
+            let warna = "";
+            if (Re < 2300) {
+                tipe = currentLang === 'id' ? "Laminar (Aliran Berlapis Tenang)" : "Laminar (Smooth Uniform Flow)";
+                warna = "#2563eb";
+            } else if (Re >= 2300 && Re <= 4000) {
+                tipe = currentLang === 'id' ? "Transisi (Peralihan Rejim Bergelombang)" : "Transitional Flow";
+                warna = "#ea580c";
+            } else {
+                tipe = currentLang === 'id' ? "Turbulen (Aliran Acak & Bergolak Keras)" : "Turbulent (Highly Agitated Flow)";
+                warna = "#dc2626";
+            }
+            
+            return { reynolds: Math.round(Re).toLocaleString(), tipe: tipe, warna: warna, kecepatan: v.toFixed(2) };
+        }
+
         function openMetricModal(key) {
-            document.getElementById('m-value').style.fontSize = "14px";
             const mIconContainer = document.getElementById('m-icon');
+            const mTitleNode = document.getElementById('m-title');
+            const mValueNode = document.getElementById('m-value');
+            const mDescNode = document.getElementById('m-desc');
+
+            mValueNode.style.fontSize = "26px";
+            mValueNode.innerHTML = ""; 
             
             const kw = cachedMetrics.kw;
             const w = cachedMetrics.w;
@@ -666,71 +703,132 @@
             const trHead = document.getElementById('tr-head').innerText;
             const trIdeal = document.getElementById('tr-ideal').innerText;
 
+            const aliranAktual = hitungRejimAliran(currentQ);
+            const dataLang = i18n[currentLang];
+
             if (key === 'informasi_sistem') {
                 mIconContainer.innerHTML = svgIcons.sys;
-                if (currentLang === 'id') {
-                    document.getElementById('m-title').innerText = "Detail Informasi Sistem";
-                    document.getElementById('m-value').innerHTML = `
-                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
-                            <p><strong>⚡ Tegangan Jala-Jala:</strong> 380 V (3-&Phi;)<br><span style="color:var(--text-muted); font-size:11px;">Tegangan suplai standar industrial 3-Fasa berfrekuensi jala-jala 50 Hz.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🔥 Kuat Arus Beban (I):</strong> <span style="color:#db2777; font-weight:bold;">${current}</span><br><span style="color:var(--text-muted); font-size:11px;">Arus nyata yang ditarik kumparan elektromotor berdasarkan beban saat ini.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>〰️ Frekuensi Kerja:</strong> 50 Hz<br><span style="color:var(--text-muted); font-size:11px;">Frekuensi siklus bolak-balik pasokan listrik AC yang konstan dari sumber daya.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🛡️ Batas Aman Arus:</strong> 60.0 A<br><span style="color:var(--text-muted); font-size:11px;">Ambang batas kontinu sebelum breaker/sistem pengaman memicu trip Overload.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🌊 Daya Hidrolik Netto:</strong> <span style="color:#16a34a; font-weight:bold;">${hyd}</span><br><span style="color:var(--text-muted); font-size:11px;">Energi mekanis murni yang sukses disalurkan baling-baling pompa ke fluida cair.</span></p>
+                mTitleNode.innerText = dataLang.titleInfoSys;
+                mValueNode.style.fontSize = "16px";
+                mValueNode.innerText = currentLang === 'id' ? "Detail Data Kelistrikan Industri" : "Industrial Electrical Telemetry";
+                
+                mDescNode.innerHTML = `
+                    <div class="modal-item-list">
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>⚡ ${dataLang.lblVolt}</span><span style="color:#2563eb;">380 V (3-&Phi;)</span></div>
+                            <div class="modal-item-subtext">${dataLang.subdescVolt}</div>
                         </div>
-                    `;
-                    document.getElementById('m-desc').innerText = "Seluruh parameter kelistrikan dan hidrolik penunjang operasional sistem penggerak utama pompa.";
-                } else {
-                    document.getElementById('m-title').innerText = "System Information Details";
-                    document.getElementById('m-value').innerHTML = `
-                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
-                            <p><strong>⚡ Grid Line Voltage:</strong> 380 V (3-&Phi;)<br><span style="color:var(--text-muted); font-size:11px;">Standard industrial 3-Phase utility supply voltage synchronized at 50 Hz.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🔥 Load Current (I):</strong> <span style="color:#db2777; font-weight:bold;">${current}</span><br><span style="color:var(--text-muted); font-size:11px;">Calculated running electric current traversing the induction windings.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>〰️ Frequency:</strong> 50 Hz<br><span style="color:var(--text-muted); font-size:11px;">Locked system operating utility grid alternate current frequency bound.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🛡️ Safe Current Limit:</strong> 60.0 A<br><span style="color:var(--text-muted); font-size:11px;">Maximum load protective threshold constraint before safety breaker actuation.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong>🌊 Net Hydraulic Power:</strong> <span style="color:#16a34a; font-weight:bold;">${hyd}</span><br><span style="color:var(--text-muted); font-size:11px;">True fluid kinetic output power delivered effectively straight to the water body.</span></p>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🔥 ${dataLang.lblCurrent}</span><span style="color:#db2777;">${current}</span></div>
+                            <div class="modal-item-subtext">${dataLang.subdescCurrent}</div>
+                            <div class="modal-formula-badge">Formula: I = P / (√3 · V · cos&phi;)</div>
                         </div>
-                    `;
-                    document.getElementById('m-desc').innerText = "Comprehensive mapping of active operational hardware parameters of the pumping mechanics.";
-                }
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>〰️ ${dataLang.lblFreq}</span><span>50 Hz</span></div>
+                            <div class="modal-item-subtext">${dataLang.subdescFreq}</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🛡️ ${dataLang.lblSafe}</span><span>60.0 A</span></div>
+                            <div class="modal-item-subtext">${dataLang.subdescSafe}</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🌊 ${dataLang.lblHydPower}</span><span style="color:#16a34a;">${hyd}</span></div>
+                            <div class="modal-item-subtext">${dataLang.subdescHyd}</div>
+                            <div class="modal-formula-badge">Formula: Ph = &rho; · g · Q · H</div>
+                        </div>
+                    </div>
+                `;
             } 
             else if (key === 'trend_performa') {
                 mIconContainer.innerHTML = svgIcons.trend;
-                if (currentLang === 'id') {
-                    document.getElementById('m-title').innerText = "Detail Analisis Trend Performa";
-                    document.getElementById('m-value').innerHTML = `
-                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
-                            <p><strong style="color:#1e40af;">🔹 Debit Rendah (15 L/s):</strong> <b>${trLow}</b><br><span style="color:var(--text-muted); font-size:11px;">Konsumsi daya minimum jika katup aliran sengaja dibatasi di ambang bawah.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#166534;">🟢 Kondisi Aktual (Input):</strong> <b>${trCurr}</b><br><span style="color:var(--text-muted); font-size:11px;">Daya listrik nyata yang diserap motor berdasarkan variabel yang diinput saat ini.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#9a3412;">🔸 Debit Tinggi (+10 L/s):</strong> <b>${trHigh}</b><br><span style="color:var(--text-muted); font-size:11px;">Estimasi lonjakan beban listrik jika kapasitas pipa penyaluran air diperbesar.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#991b1b;">🔻 Head Ekstrim (50 m):</strong> <b>${trHead}</b><br><span style="color:var(--text-muted); font-size:11px;">Kondisi kritis pembebanan torsi tinggi akibat dorongan elevasi vertikal maksimal.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#6b21a8;">🟪 Efisiensi Ideal (85%):</strong> <b>${trIdeal}</b><br><span style="color:var(--text-muted); font-size:11px;">Target penghematan energi optimal sekiranya spesifikasi pompa ditingkatkan ke kelas premium.</span></p>
-                        </div>
-                    `;
-                    document.getElementById('m-desc').innerText = "Proyeksi komparasi kebutuhan daya listrik motor pompa di berbagai kondisi batas operasional lapangan.";
-                } else {
-                    document.getElementById('m-title').innerText = "Performance Trend Analysis Details";
-                    document.getElementById('m-value').innerHTML = `
-                        <div style="text-align: left; background: var(--border-light); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-main);">
-                            <p><strong style="color:#1e40af;">🔹 Low Flow (15 L/s):</strong> <b>${trLow}</b><br><span style="color:var(--text-muted); font-size:11px;">Power demand minimum metric when fluid throughput throttling is applied.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#166534;">🟢 Actual Condition:</strong> <b>${trCurr}</b><br><span style="color:var(--text-muted); font-size:11px;">True active power draw calculated instantly from your configuration settings.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#9a3412;">🔸 High Flow (+10 L/s):</strong> <b>${trHigh}</b><br><span style="color:var(--text-muted); font-size:11px;">Overhead electrical load scaling forecast if mechanical flow discharge scales.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#991b1b;">🔻 Extreme Head (50 m):</strong> <b>${trHead}</b><br><span style="color:var(--text-muted); font-size:11px;">Severe mechanical strain limits when pushing fluid up into heavy head static layout.</span></p><hr style="border:0; border-top:1px dashed var(--border-color); margin:6px 0;">
-                            <p><strong style="color:#6b21a8;">🟪 Ideal Efficiency (85%):</strong> <b>${trIdeal}</b><br><span style="color:var(--text-muted); font-size:11px;">Optimized utility grid scale target assuming premium grade pump deployment.</span></p>
-                        </div>
-                    `;
-                    document.getElementById('m-desc').innerText = "Comparative forecast matrix plotting operational load behavior under hypothetical load boundaries.";
-                }
-            } 
-            else {
-                document.getElementById('m-value').style.fontSize = "28px";
-                const modalData = i18n[currentLang].modal[key];
-                let valueText = (key === 'kw') ? kw : (key === 'w') ? w : hp;
+                mTitleNode.innerText = currentLang === 'id' ? "Detail Analisis Trend & Karakteristik Aliran" : "Trend Analysis & Hydrodynamics";
+                mValueNode.style.fontSize = "16px";
+                mValueNode.innerText = currentLang === 'id' ? "Evaluasi Hidrodinamika Terintegrasi" : "Integrated Hydrodynamics Evaluation";
                 
+                mDescNode.innerHTML = `
+                    <div class="modal-item-list">
+                        <div class="modal-item-box" style="border-left: 4px solid ${aliranAktual.warna};">
+                            <div class="modal-item-header"><span>🌊 Analisis Aliran Fluida (Aktual)</span><span style="color:${aliranAktual.warna};">${aliranAktual.tipe}</span></div>
+                            <div class="modal-item-subtext">
+                                Kecepatan Aliran (v): <b>${aliranAktual.kecepatan} m/s</b><br>
+                                Bilangan Reynolds (Re): <b>${aliranAktual.reynolds}</b>
+                            </div>
+                            <div class="modal-formula-badge">Formula Dasar: Re = (&rho; · v · D) / &mu;</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>📊 Perbandingan Beban Konsumsi Daya</span></div>
+                            <div class="modal-item-subtext" style="line-height:1.6; margin-top:5px;">
+                                • ${dataLang.lblTrLow.replace('<br>', ' ')}: <b>${trLow}</b><br>
+                                • ${dataLang.lblTrCurr.replace('<br>', ' ')}: <b style="color:#166534;">${trCurr}</b><br>
+                                • ${dataLang.lblTrHigh.replace('<br>', ' ')}: <b>${trHigh}</b><br>
+                                • ${dataLang.lblTrHead.replace('<br>', ' ')}: <b>${trHead}</b><br>
+                                • ${dataLang.lblTrIdeal.replace('<br>', ' ')}: <b>${trIdeal}</b>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (key === 'komposisi_daya') {
+                mIconContainer.innerHTML = svgIcons.trend;
+                mTitleNode.innerText = dataLang.titleChartKomp;
+                mValueNode.style.fontSize = "16px";
+                mValueNode.innerText = currentLang === 'id' ? "Rangkuman Neraca Energi" : "Energy Balance Summary";
+                
+                const d1 = chartKomposisiObj.data.datasets[0].data[0].toFixed(2) + " kW";
+                const d2 = chartKomposisiObj.data.datasets[0].data[1].toFixed(2) + " kW";
+                const d3 = chartKomposisiObj.data.datasets[0].data[2].toFixed(2) + " kW";
+
+                mDescNode.innerHTML = `
+                    <div class="modal-item-list">
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🔹 ${dataLang.chartLabelsKomp[0]}</span><span style="color:#2563eb;">${d1}</span></div>
+                            <div class="modal-item-subtext">Energi netto dalam bentuk tekanan dan laju kinetik yang murni berhasil diterima oleh aliran air.</div>
+                            <div class="modal-formula-badge">Formula: Ph = &rho; · g · Q · H</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🔸 ${dataLang.chartLabelsKomp[1]}</span><span style="color:#ea580c;">${d2}</span></div>
+                            <div class="modal-item-subtext">Rugi daya jala-jala jenuh yang terbuang pada kumparan tembaga gulungan motor stator berupa induksi elektromagnetik panas.</div>
+                            <div class="modal-formula-badge">Formula: Loss<sub>motor</sub> = P<sub>input</sub> · (1 - &eta;) · 0.6</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🔻 ${dataLang.chartLabelsKomp[2]}</span><span style="color:#dc2626;">${d3}</span></div>
+                            <div class="modal-item-subtext">Kerugian mekanis gesekan poros yang terjadi di dalam bodi rumah pompa (losses pada komponen bearing & shaft seal).</div>
+                            <div class="modal-formula-badge">Formula: Loss<sub>mekanis</sub> = P<sub>input</sub> · (1 - &eta;) · 0.4</div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (key === 'analisis_performa') {
+                mIconContainer.innerHTML = svgIcons.trend;
+                mTitleNode.innerText = dataLang.titleChartPerf;
+                mValueNode.style.fontSize = "16px";
+                mValueNode.innerText = currentLang === 'id' ? "Rangkuman Rasio Termodinamika" : "Thermodynamic Ratio Breakdown";
+                
+                const ef = chartPerformaObj.data.datasets[0].data[0].toFixed(0) + " %";
+                const rk = chartPerformaObj.data.datasets[0].data[1].toFixed(0) + " %";
+
+                mDescNode.innerHTML = `
+                    <div class="modal-item-list">
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>🟢 ${dataLang.chartLabelsPerf[0]}</span><span style="color:#10b981;">${ef}</span></div>
+                            <div class="modal-item-subtext">Persentase efisiensi energi riil sistem untuk dikonversi menjadi daya hidrolik dorong air murni.</div>
+                            <div class="modal-formula-badge">Formula: &eta; = (P<sub>hidrolik</sub> / P<sub>listrik</sub>) · 100%</div>
+                        </div>
+                        <div class="modal-item-box">
+                            <div class="modal-item-header"><span>⚪ ${dataLang.chartLabelsPerf[1]}</span><span style="color:#718096;">${rk}</span></div>
+                            <div class="modal-item-subtext">Total porsi fraksi daya masukan grid listrik industri yang tidak termanfaatkan dan bocor keluar menjadi entropi kalor disipasi.</div>
+                            <div class="modal-formula-badge">Formula: Rugi Kalor = 100% - &eta;</div>
+                        </div>
+                    </div>
+                `;
+            }
+            else {
+                // INDIKATOR TUNGGAL (kW, Watt, HP) -> Tetap Tampilkan Nilai Aktual dan Deskripsi Orisinal
+                const modalData = dataLang.modal[key];
                 mIconContainer.innerHTML = svgIcons[key];
-                document.getElementById('m-title').innerText = modalData.title;
-                document.getElementById('m-value').innerText = valueText;
-                document.getElementById('m-desc').innerText = modalData.desc;
+                mTitleNode.innerText = modalData.title;
+                mValueNode.innerText = (key === 'kw') ? kw : (key === 'w') ? w : hp;
+                mDescNode.innerHTML = `<strong>Deskripsi:</strong> ${modalData.desc}`;
             }
             
             document.getElementById('outputModal').classList.add('active');
@@ -784,6 +882,11 @@
             document.getElementById('lbl-freq').innerText = data.lblFreq;
             document.getElementById('lbl-safe').innerText = data.lblSafe;
             document.getElementById('lbl-hyd-power').innerText = data.lblHydPower;
+            document.getElementById('subdesc-volt').innerText = data.subdescVolt;
+            document.getElementById('subdesc-current').innerText = data.subdescCurrent;
+            document.getElementById('subdesc-freq').innerText = data.subdescFreq;
+            document.getElementById('subdesc-safe').innerText = data.subdescSafe;
+            document.getElementById('subdesc-hyd').innerText = data.subdescHyd;
             document.getElementById('title-trend-panel').innerText = data.titleTrendPanel;
             document.getElementById('lbl-tr-low').innerHTML = data.lblTrLow;
             document.getElementById('lbl-tr-curr').innerHTML = data.lblTrCurr;
@@ -791,6 +894,7 @@
             document.getElementById('lbl-tr-head').innerHTML = data.lblTrHead;
             document.getElementById('lbl-tr-ideal').innerHTML = data.lblTrIdeal;
 
+            document.getElementById('themeToggleBtn').innerText = currentTheme === 'dark' ? data.themeLightBtn : data.themeDarkBtn;
             document.getElementById('formula-detail-display').innerHTML = data.formula[activeFormulaKey];
 
             if (chartKomposisiObj && chartPerformaObj) {
@@ -819,16 +923,14 @@
             document.getElementById('formula-detail-display').innerHTML = i18n[currentLang].formula[kunci];
         }
 
-        // FUNGSI UTAMA HD CANVAS OPTIMIZATION
         function adaptCanvasResolution() {
             const rect = canvas.getBoundingClientRect();
-            // devicePixelRatio membaca kepadatan pixel layar saat ini (termasuk rasio Zoom browser)
             const dpr = window.devicePixelRatio || 1;
             
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             
-            ctx.resetTransform(); // Reset agar transformasi skala tidak menumpuk saat di-resize
+            ctx.resetTransform();
             ctx.scale(dpr, dpr);
         }
 
@@ -1081,7 +1183,6 @@
             const ctxK = document.getElementById('chartKomposisi');
             const ctxP = document.getElementById('chartPerforma');
 
-            // Set konfigurasi devicePixelRatio global untuk Chart.js (Agar Grafik Chart HD saat di-zoom)
             Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
 
             chartKomposisiObj = new Chart(ctxK, {
@@ -1093,38 +1194,7 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } },
-                    onClick: () => {
-                        const d1 = chartKomposisiObj.data.datasets[0].data[0].toFixed(2) + " kW";
-                        const d2 = chartKomposisiObj.data.datasets[0].data[1].toFixed(2) + " kW";
-                        const d3 = chartKomposisiObj.data.datasets[0].data[2].toFixed(2) + " kW";
-                        
-                        document.getElementById('m-value').style.fontSize = "14px";
-                        document.getElementById('m-icon').innerHTML = svgIcons.trend;
-                        
-                        if (currentLang === 'id') {
-                            document.getElementById('m-title').innerText = "Rangkuman Komposisi Daya";
-                            document.getElementById('m-value').innerHTML = `
-                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
-                                    <p><strong>🔹 Daya Hidrolik Netto:</strong> ${d1}</p>
-                                    <p><strong>🔸 Kerugian Elektrikal Motor:</strong> ${d2}</p>
-                                    <p><strong>🔻 Kerugian Gesekan Mekanis:</strong> ${d3}</p>
-                                </div>
-                            `;
-                            document.getElementById('m-desc').innerText = "Rincian menyeluruh alokasi pembagian daya nyata listrik dari grid jala-jala utama industri.";
-                        } else {
-                            document.getElementById('m-title').innerText = "Power Composition Summary";
-                            document.getElementById('m-value').innerHTML = `
-                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
-                                    <p><strong>🔹 Net Hydraulic Power:</strong> ${d1}</p>
-                                    <p><strong>🔸 Motor Electrical Losses:</strong> ${d2}</p>
-                                    <p><strong>🔻 Mechanical Friction Losses:</strong> ${d3}</p>
-                                </div>
-                            `;
-                            document.getElementById('m-desc').innerText = "Comprehensive partition logs mapping input grid power drawn by the motor load.";
-                        }
-                        document.getElementById('outputModal').classList.add('active');
-                    }
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } }
                 }
             });
 
@@ -1137,40 +1207,9 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } },
-                    onClick: () => {
-                        const ef = chartPerformaObj.data.datasets[0].data[0].toFixed(0) + " %";
-                        const rk = chartPerformaObj.data.datasets[0].data[1].toFixed(0) + " %";
-                        
-                        document.getElementById('m-value').style.fontSize = "14px";
-                        document.getElementById('m-icon').innerHTML = svgIcons.trend;
-                        
-                        if (currentLang === 'id') {
-                            document.getElementById('m-title').innerText = "Rangkuman Analisis Performa";
-                            document.getElementById('m-value').innerHTML = `
-                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
-                                    <p><strong>🟢 Efisiensi Aktual:</strong> ${ef}</p>
-                                    <p><strong>⚪ Rugi Kalor (Disipasi):</strong> ${rk}</p>
-                                </div>
-                            `;
-                            document.getElementById('m-desc').innerText = "Rasio perbandingan antara total daya berguna pada zat cair terhadap sisa energi yang terbuang menjadi energi panas.";
-                        } else {
-                            document.getElementById('m-title').innerText = "Performance Analysis Summary";
-                            document.getElementById('m-value').innerHTML = `
-                                <div style="text-align: left; background: var(--border-light); padding: 10px; border-radius: 8px; color: var(--text-main); line-height:1.7;">
-                                    <p><strong>🟢 Actual Efficiency:</strong> ${ef}</p>
-                                    <p><strong>⚪ Thermal Dissipation Loss:</strong> ${rk}</p>
-                                </div>
-                            `;
-                            document.getElementById('m-desc').innerText = "Percentage tracking summary showing successful kinetic kinetic transition versus unrecoverable thermal heating.";
-                        }
-                        document.getElementById('outputModal').classList.add('active');
-                    }
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } }
                 }
             });
-
-            document.getElementById('chartKompContainer').onclick = () => chartKomposisiObj.options.onClick();
-            document.getElementById('chartPerfContainer').onclick = () => chartPerformaObj.options.onClick();
 
             hitungDaya();
             renderFluidSimulation();
@@ -1201,7 +1240,6 @@
             }, 1000);
         });
 
-        // Event listener pendeteksi perubahan zoom / ukuran layar
         window.addEventListener('resize', () => { 
             if (canvas) {
                 adaptCanvasResolution();
